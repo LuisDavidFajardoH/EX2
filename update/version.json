@@ -1,7 +1,7 @@
 {
-  "versionCode": 10,
-  "versionName": "4.5",
+  "versionCode": 11,
+  "versionName": "5.0",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "3a77a1927d4c279a89cd71ceecdf28ca57d93660454ec97f934e6abebec6f93e",
-  "notes": "Arreglada la instalación de actualizaciones; la app se reabre sola al terminar."
+  "sha256": "18122fc0b94382536f8f1b4b67388f743838e58c75894ea83951c42de32be574",
+  "notes": "La app ya no queda corriendo en segundo plano: aplica tu modo y sonido al encender y se apaga sola."
 }

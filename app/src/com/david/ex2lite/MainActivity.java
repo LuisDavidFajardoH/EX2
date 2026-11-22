@@ -81,7 +81,8 @@ public class MainActivity extends Activity {
     private boolean scanRegistered;
 
     // actualizar
-    private TextView updStatus;
+    private TextView updStatus, launchInfo;
+    private String launchNote = "";
 
     private final Runnable periodic = this::tickPeriodic;
 
@@ -120,9 +121,9 @@ public class MainActivity extends Activity {
         }
         setContentView(root);
         TouchFx.apply(root);
+        noteLaunch();
         show(home);
 
-        KeeperService.start(this);
         new Thread(() -> {
             boolean ok = car.connect(this);
             if (ok) car.listenChanges(new CarLink.Changes(v -> ui.post(this::refreshMode)));
@@ -131,6 +132,26 @@ public class MainActivity extends Activity {
                 if (!ok) toast("No se pudo conectar con el carro");
             });
         }).start();
+    }
+
+    @Override protected void onNewIntent(android.content.Intent i) {
+        super.onNewIntent(i);
+        setIntent(i);
+        noteLaunch();
+    }
+
+    /** Anota quién abrió la app, para poder rastrear aperturas que nadie pidió. */
+    private void noteLaunch() {
+        String ref = "?";
+        try {
+            android.net.Uri u = getReferrer();
+            if (u != null) ref = u.toString().replace("android-app://", "");
+        } catch (Throwable ignored) {}
+        String caller = getCallingPackage();
+        launchNote = new SimpleDateFormat("HH:mm:ss", Locale.US).format(new Date())
+                + "  origen: " + ref + (caller != null ? "  llamó: " + caller : "");
+        p.edit().putString("last_launch", launchNote).apply();
+        if (launchInfo != null) launchInfo.setText("Última apertura  " + launchNote);
     }
 
     @Override protected void onResume() {
@@ -586,16 +607,31 @@ public class MainActivity extends Activity {
         sw.setChecked(p.getBoolean(Prefs.REMEMBER, true));
         sw.setOnCheckedChangeListener((v, on) -> {
             p.edit().putBoolean(Prefs.REMEMBER, on).apply();
-            if (on) KeeperService.start(this);
         });
         styleSwitch(sw);
         bar.addView(sw, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
+
+        Switch watch = new Switch(this);
+        watch.setText("Vigilar cambios en segundo plano");
+        watch.setTextColor(WHITE);
+        watch.setTextSize(16);
+        watch.setTypeface(fSB);
+        watch.setChecked(p.getBoolean(Prefs.WATCH, false));
+        watch.setOnCheckedChangeListener((v, on) -> {
+            p.edit().putBoolean(Prefs.WATCH, on).apply();
+            if (on) KeeperService.start(this);
+            else stopService(new android.content.Intent(this, KeeperService.class));
+        });
+        styleSwitch(watch);
+        bar.setOrientation(LinearLayout.VERTICAL);
+        bar.addView(watch, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         blp.topMargin = dp(16);
         c.addView(bar, blp);
 
-        c.addView(hint("El modo se guarda cada vez que lo cambias, en la pantalla o en el volante. "
-                + "Al encender el carro (en P) se vuelve a poner."));
+        c.addView(hint("Con la app cerrada no queda nada corriendo: al encender el carro se pone tu modo y tu sonido y se apaga sola. "
+                + "El modo se guarda al elegirlo aquí. Si además quieres que guarde los cambios hechos desde el volante o la pantalla del carro, activa "
+                + "\"Vigilar\" (deja un servicio ligero encendido)."));
         return c;
     }
 
@@ -840,6 +876,12 @@ public class MainActivity extends Activity {
             }).start();
         });
         c.addView(upd, new LinearLayout.LayoutParams(dp(380), dp(56)));
+
+        launchInfo = tv("", 11, DIM, null);
+        launchInfo.setGravity(Gravity.CENTER);
+        launchInfo.setPadding(0, dp(16), 0, 0);
+        launchInfo.setText("Última apertura  " + p.getString("last_launch", "-"));
+        c.addView(launchInfo);
         return c;
     }
 

@@ -90,11 +90,13 @@ public final class Updater {
             apk.setReadable(true, false);
             // Instalación directa. Si sale bien, el sistema cierra esta app y el
             // BootReceiver la vuelve a abrir al detectar que fue reemplazada.
+            Prefs.get(c).edit().putBoolean(Prefs.REOPEN, true).commit();
             String out = RootShell.run(90000, "pm install -r -d " + apk.getAbsolutePath());
             apk.delete();
             if (out != null && out.toLowerCase(Locale.ROOT).contains("success")) {
                 return new Result(true, true, "Actualizado a " + name + ". Reiniciando...");
             }
+            Prefs.get(c).edit().putBoolean(Prefs.REOPEN, false).apply();
             return new Result(false, false, "La instalación falló: " + out);
         } catch (Throwable t) {
             Log.w(T, "update", t);

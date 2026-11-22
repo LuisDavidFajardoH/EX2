@@ -17,6 +17,10 @@ import android.util.Log;
 /**
  * Servicio que recuerda el modo de manejo y el sonido de bloqueo.
  *
+ * Por defecto NO se queda corriendo: arranca al encender/despertar el carro, repone
+ * lo guardado durante ~45 s y se apaga solo. Solo si el usuario activa "Vigilar
+ * cambios en segundo plano" se queda vivo para guardar cambios hechos fuera de la app.
+ *
  * - Guardar: cada vez que el carro cambia modo o regeneración (desde la pantalla,
  *   el volante o la app), se guarda al instante. Así no depende de "apagar bien".
  * - Restaurar: el carro vuelve a valores de fábrica al prender y al despertar.
@@ -39,6 +43,7 @@ public class KeeperService extends Service {
     private final CarLink car = new CarLink();
     private volatile long windowEnd = 0;
     private long lastSleep = -1;
+    private volatile boolean watching = false;
 
     public static void start(Context c) {
         try { c.startForegroundService(new Intent(c, KeeperService.class)); }
@@ -55,8 +60,9 @@ public class KeeperService extends Service {
     }
 
     @Override public int onStartCommand(Intent i, int flags, int id) {
+        watching = Prefs.get(this).getBoolean(Prefs.WATCH, false);
         if (h != null) h.post(this::openWindow);
-        return START_STICKY;
+        return watching ? START_STICKY : START_NOT_STICKY;
     }
 
     private void init() {
@@ -64,13 +70,14 @@ public class KeeperService extends Service {
         if (!car.ready()) Log.w(T, "car service not ready");
         openWindow();
 
-        car.listenChanges(new CarLink.Changes(this::onCarChanged));
-
-        boolean power = car.listenPower(state -> {
-            Log.i(T, "power state " + state);
-            if (state == CarLink.SUSPEND_EXIT) h.post(this::openWindow);
-        });
-        Log.i(T, "power listener: " + power);
+        if (watching) {
+            car.listenChanges(new CarLink.Changes(this::onCarChanged));
+            boolean power = car.listenPower(state -> {
+                Log.i(T, "power state " + state);
+                if (state == CarLink.SUSPEND_EXIT) h.post(this::openWindow);
+            });
+            Log.i(T, "power listener: " + power);
+        }
         lastSleep = sleepMs();
         h.post(this::tick);
     }
@@ -111,6 +118,11 @@ public class KeeperService extends Service {
 
         if (SystemClock.elapsedRealtime() < windowEnd) restore();
         LockSound.enforce(this);
+        if (!watching && SystemClock.elapsedRealtime() >= windowEnd + TICK_MS) {
+            Log.i(T, "listo; me apago");
+            stopSelf();
+            return;
+        }
         h.postDelayed(this::tick, TICK_MS);
     }
 
@@ -140,7 +152,7 @@ public class KeeperService extends Service {
         }
         return new Notification.Builder(this, "ex2lite")
                 .setContentTitle("EX2 Lite")
-                .setContentText("Recordando tu modo y tu sonido")
+                .setContentText(watching ? "Vigilando tu modo y tu sonido" : "Aplicando tu modo y tu sonido")
                 .setSmallIcon(android.R.drawable.ic_menu_preferences)
                 .build();
     }
