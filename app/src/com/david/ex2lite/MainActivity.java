@@ -3,9 +3,6 @@ package com.david.ex2lite;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -20,6 +17,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,14 +39,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Menú de inicio estilo McLaren: negro carbono, naranja papaya, mosaicos grandes.
+ * Menú de inicio estilo McLaren: fondo ilustrado, tarjetas de cristal, naranja papaya.
  * Inicio → Manejo / Sonido / Red / Actualizar.
  */
 public class MainActivity extends Activity {
-    static final int BLACK = 0xFF07080A, PANEL = 0xCC101216, PANEL_LINE = 0xFF23272E,
-            PAPAYA = 0xFFFF8000, PAPAYA_HI = 0xFFFF9A2E, PAPAYA_LO = 0xFF7A3A00,
-            WHITE = 0xFFF5F5F5, DIM = 0xFF8C929B, BTN = 0xFF1A1D23, CHIP = 0xFF161A20,
-            DANGER = 0xFFFF5A4E, TILE_TOP = 0xFF1C2028, TILE_BOT = 0xFF0C0E12;
+    static final int BLACK = 0xFF07080A, PAPAYA = 0xFFFF8000, PAPAYA_HI = 0xFFFFA03A, PAPAYA_LO = 0xFFE86A00,
+            WHITE = 0xFFF5F5F5, DIM = 0xFF9AA1AB, SOFT = 0xFFD7DBE0, DANGER = 0xFFFF5A4E,
+            GLASS_TOP = 0xE6222833, GLASS_BOT = 0xE60E1116, GLASS_LINE = 0x33FFFFFF, FIELD = 0x40FFFFFF;
 
     static final int CITY_DRIVE = 1, CITY_REGEN = 2;   // Eco + Media
     static final int HWY_DRIVE = 3, HWY_REGEN = 2;     // Sport + Media
@@ -56,17 +54,18 @@ public class MainActivity extends Activity {
     private final CarLink car = new CarLink();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private SharedPreferences p;
+    private Typeface fXB, fSB, fLT;
 
     private FrameLayout root;
     private View home, modesPage, soundPage, netPage, updPage, current;
 
     // inicio
-    private TextView clock, dateTxt, wifiChip, ipChip;
-    private View tileMode, tileSound, tileNet, tileUpd;
+    private TextView clock, dateTxt, wifiChip, ipChip, modeName, modeSub;
+    private ImageView modeArt;
+    private View tileSound, tileNet, tileUpd;
 
     // manejo
-    private LinearLayout cityCard, hwyCard;
-    private TextView modeNow;
+    private FrameLayout cityCard, hwyCard;
 
     // sonido
     private TextView lockNow;
@@ -76,10 +75,6 @@ public class MainActivity extends Activity {
     private TextView netSsid, netIp, netSignal;
     private LinearLayout netList;
     private final ScanReceiver scanRx = new ScanReceiver(this);
-
-    void onScanResults() {
-        ui.post(() -> { if (current == netPage) refreshNetList(); });
-    }
     private boolean scanRegistered;
 
     // actualizar
@@ -93,12 +88,23 @@ public class MainActivity extends Activity {
         ui.postDelayed(periodic, 5000);
     }
 
+    void onScanResults() {
+        ui.post(() -> { if (current == netPage) refreshNetList(); });
+    }
+
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         p = Prefs.get(this);
+        fXB = font(R.font.mont_xbold_italic, Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
+        fSB = font(R.font.mont_semibold, Typeface.create("sans-serif-medium", Typeface.BOLD));
+        fLT = font(R.font.mont_light, Typeface.create("sans-serif-light", Typeface.NORMAL));
 
         root = new FrameLayout(this);
-        root.setBackgroundResource(R.drawable.bg_carbon);
+        root.setBackgroundColor(BLACK);
+        ImageView bg = new ImageView(this);
+        bg.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        bg.setImageResource(R.drawable.bg_home);
+        root.addView(bg, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         home = homePage();
         modesPage = page("MANEJO", modesContent());
@@ -167,121 +173,158 @@ public class MainActivity extends Activity {
     private View homePage() {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(dp(30), dp(22), dp(30), dp(22));
+        row.setPadding(dp(32), dp(24), dp(32), dp(24));
 
+        // ---- columna izquierda: marca, reloj, red
         LinearLayout left = new LinearLayout(this);
         left.setOrientation(LinearLayout.VERTICAL);
-        left.setGravity(Gravity.CENTER_VERTICAL);
 
+        LinearLayout brand = new LinearLayout(this);
+        brand.setGravity(Gravity.CENTER_VERTICAL);
         ImageView fox = new ImageView(this);
-        fox.setImageResource(R.mipmap.ic_launcher);
-        left.addView(fox, new LinearLayout.LayoutParams(dp(104), dp(104)));
+        fox.setImageResource(R.drawable.fox_hero);
+        brand.addView(fox, new LinearLayout.LayoutParams(dp(92), dp(92)));
+        LinearLayout names = new LinearLayout(this);
+        names.setOrientation(LinearLayout.VERTICAL);
+        names.setPadding(dp(6), 0, 0, 0);
+        TextView t1 = tv("EX2 LITE", 26, WHITE, fXB);
+        t1.setLetterSpacing(0.08f);
+        TextView t2 = tv("GEELY EX2", 11, PAPAYA, fSB);
+        t2.setLetterSpacing(0.32f);
+        names.addView(t1);
+        names.addView(t2);
+        brand.addView(names);
+        left.addView(brand);
 
-        TextView title = new TextView(this);
-        title.setText("EX2  LITE");
-        title.setTextColor(WHITE);
-        title.setTextSize(30);
-        title.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
-        title.setLetterSpacing(0.12f);
-        title.setPadding(0, dp(8), 0, 0);
-        left.addView(title);
+        left.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 1));
 
-        TextView hi = new TextView(this);
-        hi.setText("Hola, David");
-        hi.setTextColor(DIM);
-        hi.setTextSize(16);
-        left.addView(hi);
-
-        clock = new TextView(this);
-        clock.setTextColor(WHITE);
-        clock.setTextSize(58);
-        clock.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
-        clock.setPadding(0, dp(22), 0, 0);
+        clock = tv("--:--", 66, WHITE, fLT);
+        clock.setIncludeFontPadding(false);
         left.addView(clock);
-
-        dateTxt = new TextView(this);
-        dateTxt.setTextColor(PAPAYA);
-        dateTxt.setTextSize(14);
-        dateTxt.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        dateTxt.setLetterSpacing(0.06f);
+        dateTxt = tv("", 13, PAPAYA, fSB);
+        dateTxt.setLetterSpacing(0.18f);
+        dateTxt.setPadding(dp(4), dp(4), 0, 0);
         left.addView(dateTxt);
 
-        wifiChip = chip();
-        ipChip = chip();
-        LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        cl.topMargin = dp(18);
-        left.addView(wifiChip, cl);
-        LinearLayout.LayoutParams cl2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        cl2.topMargin = dp(8);
-        left.addView(ipChip, cl2);
+        left.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 0.6f));
 
-        row.addView(left, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.85f));
+        wifiChip = new TextView(this);
+        ipChip = new TextView(this);
+        left.addView(chip(R.drawable.ic_wifi, wifiChip), chipLp(0));
+        left.addView(chip(R.drawable.ic_ip, ipChip), chipLp(10));
 
-        LinearLayout grid = new LinearLayout(this);
-        grid.setOrientation(LinearLayout.VERTICAL);
+        row.addView(left, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 0.8f));
 
-        tileMode = tile("MANEJO", R.drawable.ic_speed, true, () -> show(modesPage));
-        tileSound = tile("SONIDO", R.drawable.ic_music, false, () -> show(soundPage));
-        tileNet = tile("RED", R.drawable.ic_wifi, false, () -> show(netPage));
-        tileUpd = tile("ACTUALIZAR", R.drawable.ic_refresh, false, () -> show(updPage));
+        // ---- columna derecha: tarjeta grande de modo + tres tarjetas
+        LinearLayout right = new LinearLayout(this);
+        right.setOrientation(LinearLayout.HORIZONTAL);
+        LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.8f);
+        rlp.leftMargin = dp(20);
 
-        LinearLayout r1 = new LinearLayout(this);
-        r1.addView(tileMode, tileLp(0));
-        r1.addView(tileSound, tileLp(12));
-        LinearLayout r2 = new LinearLayout(this);
-        r2.addView(tileNet, tileLp(0));
-        r2.addView(tileUpd, tileLp(12));
-        grid.addView(r1, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        LinearLayout.LayoutParams r2lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
-        r2lp.topMargin = dp(12);
-        grid.addView(r2, r2lp);
+        View big = modeHero();
+        right.addView(big, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.12f));
 
-        row.addView(grid, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.6f));
+        LinearLayout stack = new LinearLayout(this);
+        stack.setOrientation(LinearLayout.VERTICAL);
+        tileSound = wideTile("SONIDO", R.drawable.ic_music, () -> show(soundPage));
+        tileNet = wideTile("RED", R.drawable.ic_wifi, () -> show(netPage));
+        tileUpd = wideTile("ACTUALIZAR", R.drawable.ic_refresh, () -> show(updPage));
+        stack.addView(tileSound, stackLp(0));
+        stack.addView(tileNet, stackLp(14));
+        stack.addView(tileUpd, stackLp(14));
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+        slp.leftMargin = dp(16);
+        right.addView(stack, slp);
+
+        row.addView(right, rlp);
         return row;
     }
 
-    private LinearLayout.LayoutParams tileLp(int leftDp) {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        lp.leftMargin = dp(leftDp);
+    /** Tarjeta grande con la ilustración del modo activo. */
+    private View modeHero() {
+        FrameLayout f = new FrameLayout(this);
+        f.setBackground(ripple(rounded(0xFF111318, GLASS_LINE, 1, 26)));
+        f.setOutlineProvider(new RoundedOutline(dp(26)));
+        f.setClipToOutline(true);
+        f.setOnClickListener(v -> show(modesPage));
+
+        modeArt = new ImageView(this);
+        modeArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        f.addView(modeArt, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        f.addView(shade(), new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+        ImageView badge = badge(R.drawable.ic_speed, 52);
+        FrameLayout.LayoutParams bl = new FrameLayout.LayoutParams(dp(52), dp(52), Gravity.TOP | Gravity.END);
+        bl.setMargins(0, dp(18), dp(18), 0);
+        f.addView(badge, bl);
+
+        LinearLayout txt = new LinearLayout(this);
+        txt.setOrientation(LinearLayout.VERTICAL);
+        txt.setPadding(dp(24), dp(20), dp(24), dp(22));
+        TextView lbl = tv("MODO ACTUAL", 11, PAPAYA, fSB);
+        lbl.setLetterSpacing(0.3f);
+        txt.addView(lbl);
+        modeName = tv("", 34, WHITE, fXB);
+        modeName.setMaxLines(1);
+        modeName.setEllipsize(TextUtils.TruncateAt.END);
+        txt.addView(modeName);
+        modeSub = tv("", 14, SOFT, null);
+        modeSub.setPadding(0, dp(2), 0, dp(12));
+        txt.addView(modeSub);
+        TextView pill = tv("TOCA PARA CAMBIAR  ›", 12, 0xFF1A0F05, fSB);
+        pill.setLetterSpacing(0.12f);
+        pill.setPadding(dp(16), dp(8), dp(16), dp(8));
+        pill.setBackground(papayaPill());
+        txt.addView(pill, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        f.addView(txt, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
+        return f;
+    }
+
+    private LinearLayout.LayoutParams stackLp(int topDp) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
+        lp.topMargin = dp(topDp);
         return lp;
     }
 
-    private LinearLayout tile(String title, int icon, boolean accent, Runnable onTap) {
+    private LinearLayout.LayoutParams chipLp(int topDp) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = dp(topDp);
+        return lp;
+    }
+
+    /** Tarjeta ancha de cristal: insignia + título + dato en vivo + flecha. */
+    private LinearLayout wideTile(String title, int icon, Runnable onTap) {
         LinearLayout t = new LinearLayout(this);
-        t.setOrientation(LinearLayout.VERTICAL);
-        t.setGravity(Gravity.CENTER);
-        t.setPadding(dp(14), dp(12), dp(14), dp(12));
-        t.setBackground(ripple(accent ? gradient(PAPAYA_HI, PAPAYA_LO, 0xFF000000) : gradient(TILE_TOP, TILE_BOT, PANEL_LINE)));
+        t.setOrientation(LinearLayout.HORIZONTAL);
+        t.setGravity(Gravity.CENTER_VERTICAL);
+        t.setPadding(dp(18), dp(10), dp(14), dp(10));
+        t.setBackground(ripple(glass(22)));
 
-        ImageView img = new ImageView(this);
-        img.setImageResource(icon);
-        t.addView(img, new LinearLayout.LayoutParams(dp(56), dp(56)));
+        t.addView(badge(icon, 56), new LinearLayout.LayoutParams(dp(56), dp(56)));
 
-        TextView tt = new TextView(this);
-        tt.setText(title);
-        tt.setTextColor(WHITE);
-        tt.setTextSize(22);
-        tt.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
-        tt.setLetterSpacing(0.08f);
-        tt.setGravity(Gravity.CENTER);
-        tt.setPadding(0, dp(8), 0, 0);
-        t.addView(tt);
-
-        TextView sub = new TextView(this);
+        LinearLayout col = new LinearLayout(this);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setPadding(dp(16), 0, dp(8), 0);
+        TextView tt = tv(title, 19, WHITE, fXB);
+        tt.setLetterSpacing(0.06f);
+        col.addView(tt);
+        TextView sub = tv("", 13, DIM, null);
         sub.setTag("sub");
-        sub.setTextColor(accent ? 0xFFFFE6CC : DIM);
-        sub.setTextSize(13);
-        sub.setGravity(Gravity.CENTER);
         sub.setSingleLine(true);
-        sub.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        sub.setPadding(dp(8), dp(2), dp(8), 0);
-        t.addView(sub, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        sub.setEllipsize(TextUtils.TruncateAt.END);
+        col.addView(sub);
+        t.addView(col, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+
+        ImageView chev = new ImageView(this);
+        chev.setImageResource(R.drawable.ic_chev);
+        t.addView(chev, new LinearLayout.LayoutParams(dp(26), dp(26)));
 
         t.setOnClickListener(v -> onTap.run());
         return t;
     }
 
     private void setSub(View tile, String s) {
+        if (tile == null) return;
         TextView sub = tile.findViewWithTag("sub");
         if (sub != null) sub.setText(s);
     }
@@ -302,10 +345,10 @@ public class MainActivity extends Activity {
         String wTxt = ssid != null ? ssid : "Sin Wi-Fi";
         String iTxt = ip != null ? ip : "Sin IP";
 
-        wifiChip.setText("Wi-Fi   " + wTxt);
-        ipChip.setText("IP   " + iTxt);
+        wifiChip.setText(wTxt);
+        ipChip.setText(iTxt);
         netSsid.setText(wTxt);
-        netIp.setText("IP   " + iTxt);
+        netIp.setText(iTxt);
         netSignal.setText(rssi == null ? "No conectado" : "Señal " + quality(rssi) + "  (" + rssi + " dBm)");
         setSub(tileNet, ssid != null ? wTxt + "  ·  " + iTxt : "Sin conexión");
     }
@@ -352,62 +395,63 @@ public class MainActivity extends Activity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
 
-        LinearLayout info = panel();
+        LinearLayout info = glassPanel();
         info.setGravity(Gravity.CENTER_VERTICAL);
-        info.setPadding(dp(26), dp(22), dp(26), dp(22));
+        info.setPadding(dp(28), dp(22), dp(28), dp(22));
 
-        ImageView wifi = new ImageView(this);
-        wifi.setImageResource(R.drawable.ic_wifi);
-        info.addView(wifi, new LinearLayout.LayoutParams(dp(72), dp(72)));
+        info.addView(ringBadge(R.drawable.ic_wifi), new LinearLayout.LayoutParams(dp(150), dp(150)));
 
-        TextView lbl = label("CONECTADA A");
-        lbl.setPadding(0, dp(12), 0, 0);
+        TextView lbl = tv("CONECTADA A", 11, DIM, fSB);
+        lbl.setLetterSpacing(0.3f);
+        lbl.setPadding(0, dp(14), 0, 0);
         info.addView(lbl);
 
-        netSsid = new TextView(this);
-        netSsid.setTextColor(WHITE);
-        netSsid.setTextSize(26);
-        netSsid.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+        netSsid = tv("", 26, WHITE, fXB);
         netSsid.setSingleLine(true);
-        netSsid.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        netSsid.setEllipsize(TextUtils.TruncateAt.END);
         info.addView(netSsid);
 
-        netIp = new TextView(this);
-        netIp.setTextColor(PAPAYA);
-        netIp.setTextSize(22);
-        netIp.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        netIp.setPadding(0, dp(10), 0, 0);
-        info.addView(netIp);
+        LinearLayout ipRow = new LinearLayout(this);
+        ipRow.setGravity(Gravity.CENTER_VERTICAL);
+        ipRow.setPadding(0, dp(10), 0, 0);
+        TextView ipl = tv("IP", 12, 0xFF1A0F05, fSB);
+        ipl.setPadding(dp(8), dp(2), dp(8), dp(2));
+        ipl.setBackground(papayaPill());
+        ipRow.addView(ipl);
+        netIp = tv("", 22, PAPAYA, fSB);
+        netIp.setPadding(dp(10), 0, 0, 0);
+        ipRow.addView(netIp);
+        info.addView(ipRow);
 
-        netSignal = new TextView(this);
-        netSignal.setTextColor(DIM);
-        netSignal.setTextSize(14);
-        netSignal.setPadding(0, dp(6), 0, 0);
+        netSignal = tv("", 14, DIM, null);
+        netSignal.setPadding(0, dp(8), 0, 0);
         info.addView(netSignal);
 
         info.addView(hint("Toca una red de la derecha para conectarte. Si pide clave, aparece un cuadro para escribirla."));
-
         row.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
 
-        LinearLayout list = panel();
-        list.setPadding(dp(20), dp(18), dp(20), dp(18));
+        LinearLayout list = glassPanel();
+        list.setPadding(dp(22), dp(18), dp(22), dp(18));
         LinearLayout head = new LinearLayout(this);
         head.setGravity(Gravity.CENTER_VERTICAL);
-        TextView h = label("REDES CERCANAS");
+        TextView h = tv("REDES CERCANAS", 12, DIM, fSB);
+        h.setLetterSpacing(0.3f);
         head.addView(h, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        Button scan = small("BUSCAR");
+        Button scan = ghost("BUSCAR");
         scan.setOnClickListener(v -> { NetInfo.scan(this); toast("Buscando redes..."); });
-        head.addView(scan, smallLp(0));
+        head.addView(scan, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(42)));
         list.addView(head);
 
         ScrollView sv = new ScrollView(this);
+        sv.setVerticalScrollBarEnabled(false);
         netList = new LinearLayout(this);
         netList.setOrientation(LinearLayout.VERTICAL);
+        netList.setPadding(0, dp(12), 0, 0);
         sv.addView(netList);
         list.addView(sv, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         LinearLayout.LayoutParams rl = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.4f);
-        rl.leftMargin = dp(16);
+        rl.leftMargin = dp(18);
         row.addView(list, rl);
         return row;
     }
@@ -429,25 +473,19 @@ public class MainActivity extends Activity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(14), dp(12), dp(14), dp(12));
-        row.setBackground(ripple(rounded(connected ? 0xFF1B1408 : BTN, connected ? PAPAYA : PANEL_LINE, 1)));
+        row.setPadding(dp(16), dp(12), dp(16), dp(12));
+        row.setBackground(ripple(rounded(connected ? 0x33FF8000 : FIELD, connected ? PAPAYA : 0, connected ? 2 : 0, 16)));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.bottomMargin = dp(8);
         row.setLayoutParams(lp);
 
         LinearLayout info = new LinearLayout(this);
         info.setOrientation(LinearLayout.VERTICAL);
-        TextView n = new TextView(this);
-        n.setText(r.SSID);
-        n.setTextColor(WHITE);
-        n.setTextSize(17);
+        TextView n = tv(r.SSID, 17, WHITE, fSB);
         n.setSingleLine(true);
-        n.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        TextView s = new TextView(this);
+        n.setEllipsize(TextUtils.TruncateAt.END);
         String sub = (connected ? "Conectada  ·  " : "") + (secured ? "Con clave" : "Abierta") + "  ·  " + r.level + " dBm";
-        s.setText(sub);
-        s.setTextColor(connected ? PAPAYA : DIM);
-        s.setTextSize(12);
+        TextView s = tv(sub, 12, connected ? PAPAYA : DIM, null);
         info.addView(n);
         info.addView(s);
         row.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -455,9 +493,9 @@ public class MainActivity extends Activity {
         if (secured) {
             ImageView lock = new ImageView(this);
             lock.setImageResource(R.drawable.ic_lock);
+            lock.setColorFilter(DIM);
             row.addView(lock, new LinearLayout.LayoutParams(dp(22), dp(22)));
         }
-
         row.setOnClickListener(v -> pickNetwork(r, connected));
         return row;
     }
@@ -492,86 +530,81 @@ public class MainActivity extends Activity {
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
 
-        modeNow = new TextView(this);
-        modeNow.setTextColor(PAPAYA);
-        modeNow.setTextSize(16);
-        modeNow.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        modeNow.setLetterSpacing(0.1f);
-        modeNow.setPadding(0, 0, 0, dp(12));
-        c.addView(modeNow);
-
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        cityCard = modeCard("CIUDAD", "Eco · Regeneración media", R.drawable.ic_city,
+        cityCard = modeCard("CIUDAD", "Eco · Regeneración media", R.drawable.card_city,
                 () -> applyMode(CITY_DRIVE, CITY_REGEN));
-        hwyCard = modeCard("AUTOPISTA", "Sport · Regeneración media", R.drawable.ic_highway,
+        hwyCard = modeCard("AUTOPISTA", "Sport · Regeneración media", R.drawable.card_highway,
                 () -> applyMode(HWY_DRIVE, HWY_REGEN));
         row.addView(cityCard, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
         LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        lp2.leftMargin = dp(16);
+        lp2.leftMargin = dp(18);
         row.addView(hwyCard, lp2);
         c.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
+        LinearLayout bar = new LinearLayout(this);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(dp(20), dp(8), dp(20), dp(8));
+        bar.setBackground(glass(18));
         Switch sw = new Switch(this);
-        sw.setText("Recordar al encender el carro");
+        sw.setText("Recordar mi modo al encender el carro");
         sw.setTextColor(WHITE);
-        sw.setTextSize(17);
+        sw.setTextSize(16);
+        sw.setTypeface(fSB);
         sw.setChecked(p.getBoolean(Prefs.REMEMBER, true));
-        sw.setPadding(dp(4), dp(18), 0, dp(4));
         sw.setOnCheckedChangeListener((v, on) -> {
             p.edit().putBoolean(Prefs.REMEMBER, on).apply();
             if (on) KeeperService.start(this);
         });
-        c.addView(sw);
+        bar.addView(sw, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
+        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        blp.topMargin = dp(16);
+        c.addView(bar, blp);
 
         c.addView(hint("El modo se guarda cada vez que lo cambias, en la pantalla o en el volante. "
                 + "Al encender el carro (en P) se vuelve a poner."));
         return c;
     }
 
-    private LinearLayout modeCard(String title, String sub, int icon, Runnable onPick) {
-        LinearLayout card = panel();
-        card.setGravity(Gravity.CENTER);
-        card.setPadding(dp(18), dp(18), dp(18), dp(18));
-        card.setOnClickListener(v -> onPick.run());
+    private FrameLayout modeCard(String title, String sub, int art, Runnable onPick) {
+        FrameLayout f = new FrameLayout(this);
+        f.setBackground(ripple(rounded(0xFF111318, GLASS_LINE, 1, 26)));
+        f.setOutlineProvider(new RoundedOutline(dp(26)));
+        f.setClipToOutline(true);
+        f.setOnClickListener(v -> onPick.run());
 
         ImageView img = new ImageView(this);
-        img.setImageResource(icon);
-        img.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        card.addView(img, new LinearLayout.LayoutParams(dp(110), dp(110)));
+        img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        img.setImageResource(art);
+        img.setTag("art");
+        f.addView(img, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        f.addView(shade(), new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        TextView t = new TextView(this);
-        t.setText(title);
-        t.setTextColor(WHITE);
-        t.setTextSize(26);
-        t.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
-        t.setLetterSpacing(0.08f);
-        t.setGravity(Gravity.CENTER);
-        t.setPadding(0, dp(12), 0, 0);
-        card.addView(t);
+        LinearLayout txt = new LinearLayout(this);
+        txt.setOrientation(LinearLayout.VERTICAL);
+        txt.setPadding(dp(26), dp(20), dp(26), dp(24));
+        TextView t = tv(title, 32, WHITE, fXB);
+        t.setLetterSpacing(0.04f);
+        txt.addView(t);
+        txt.addView(tv(sub, 15, SOFT, null));
+        f.addView(txt, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
 
-        TextView s = new TextView(this);
-        s.setText(sub);
-        s.setTextColor(DIM);
-        s.setTextSize(14);
-        s.setGravity(Gravity.CENTER);
-        s.setPadding(0, dp(4), 0, 0);
-        card.addView(s);
-
-        TextView tag = new TextView(this);
-        tag.setText("ACTIVO");
-        tag.setTextColor(BLACK);
-        tag.setTextSize(11);
-        tag.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        tag.setLetterSpacing(0.15f);
-        tag.setPadding(dp(10), dp(3), dp(10), dp(3));
-        tag.setBackground(rounded(PAPAYA, 0, 0));
-        tag.setVisibility(View.INVISIBLE);
+        TextView tag = tv("ACTIVO", 12, 0xFF1A0F05, fSB);
+        tag.setLetterSpacing(0.2f);
+        tag.setPadding(dp(14), dp(6), dp(14), dp(6));
+        tag.setBackground(papayaPill());
         tag.setTag("tag");
-        LinearLayout.LayoutParams tl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tl.topMargin = dp(14);
-        card.addView(tag, tl);
-        return card;
+        tag.setVisibility(View.INVISIBLE);
+        FrameLayout.LayoutParams tl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.START);
+        tl.setMargins(dp(20), dp(20), 0, 0);
+        f.addView(tag, tl);
+
+        View border = new View(this);
+        border.setBackground(rounded(0, PAPAYA, 3, 26));
+        border.setTag("border");
+        border.setVisibility(View.INVISIBLE);
+        f.addView(border, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        return f;
     }
 
     private void applyMode(int drive, int regen) {
@@ -592,48 +625,68 @@ public class MainActivity extends Activity {
             markCard(cityCard, city);
             markCard(hwyCard, hwy);
         }
-        String label = city ? "MODO  CIUDAD" : hwy ? "MODO  AUTOPISTA" : "MODO  PERSONALIZADO";
-        if (modeNow != null) modeNow.setText(label);
-        if (tileMode != null) setSub(tileMode, city ? "Ciudad · Eco" : hwy ? "Autopista · Sport" : "Personalizado");
+        if (modeName != null) {
+            modeName.setText(city ? "CIUDAD" : hwy ? "AUTOPISTA" : "PERSONALIZADO");
+            modeSub.setText(city ? "Eco · Regeneración media" : hwy ? "Sport · Regeneración media" : "Configuración propia");
+            modeArt.setImageResource(city ? R.drawable.card_city : R.drawable.card_highway);
+        }
     }
 
-    private void markCard(LinearLayout card, boolean on) {
-        card.setBackground(rounded(on ? 0xFF1B1408 : PANEL, on ? PAPAYA : PANEL_LINE, on ? 3 : 1));
+    private void markCard(FrameLayout card, boolean on) {
         View tag = card.findViewWithTag("tag");
+        View border = card.findViewWithTag("border");
+        View art = card.findViewWithTag("art");
         if (tag != null) tag.setVisibility(on ? View.VISIBLE : View.INVISIBLE);
+        if (border != null) border.setVisibility(on ? View.VISIBLE : View.INVISIBLE);
+        if (art != null) art.setAlpha(on ? 1f : 0.62f);
     }
 
     // ------------------------------------------------------------ sonido
 
     private View soundContent() {
-        LinearLayout c = panel();
-        c.setPadding(dp(22), dp(18), dp(22), dp(18));
+        LinearLayout c = glassPanel();
+        c.setPadding(dp(24), dp(18), dp(24), dp(16));
 
-        lockNow = new TextView(this);
-        lockNow.setTextColor(PAPAYA);
-        lockNow.setTextSize(17);
-        lockNow.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        lockNow.setPadding(0, 0, 0, dp(10));
-        c.addView(lockNow);
+        LinearLayout top = new LinearLayout(this);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout lblCol = new LinearLayout(this);
+        lblCol.setOrientation(LinearLayout.VERTICAL);
+        TextView l1 = tv("AHORA SUENA", 11, DIM, fSB);
+        l1.setLetterSpacing(0.3f);
+        lblCol.addView(l1);
+        lockNow = tv("", 20, PAPAYA, fXB);
+        lockNow.setSingleLine(true);
+        lockNow.setEllipsize(TextUtils.TruncateAt.END);
+        lblCol.addView(lockNow);
+        top.addView(lblCol, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        ImageView wave = new ImageView(this);
+        wave.setImageResource(R.drawable.wave);
+        wave.setScaleType(ImageView.ScaleType.FIT_XY);
+        top.addView(wave, new LinearLayout.LayoutParams(0, dp(46), 1.3f));
+        c.addView(top);
 
         LinearLayout actions = new LinearLayout(this);
-        Button rescan = outline("BUSCAR");
+        Button rescan = ghost("BUSCAR");
         rescan.setOnClickListener(v -> refreshLock());
-        Button verify = outline("VERIFICAR");
+        Button verify = ghost("VERIFICAR");
         verify.setOnClickListener(v -> verifyLock());
-        Button orig = outline("ORIGINAL");
+        Button orig = ghost("ORIGINAL");
         orig.setOnClickListener(v -> {
             toast(LockSound.restore(this) ? "Listo: sonido original" : "No se pudo restaurar");
             refreshLock();
         });
-        actions.addView(rescan, weight());
-        actions.addView(verify, weightGap());
-        actions.addView(orig, weightGap());
-        c.addView(actions, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        actions.addView(rescan, weight(0));
+        actions.addView(verify, weight(10));
+        actions.addView(orig, weight(10));
+        LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        alp.topMargin = dp(14);
+        c.addView(actions, alp);
 
         ScrollView sv = new ScrollView(this);
+        sv.setVerticalScrollBarEnabled(false);
         lockList = new LinearLayout(this);
         lockList.setOrientation(LinearLayout.VERTICAL);
+        lockList.setPadding(0, dp(10), 0, 0);
         sv.addView(lockList);
         c.addView(sv, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
@@ -644,8 +697,8 @@ public class MainActivity extends Activity {
 
     private void refreshLock() {
         String name = p.getString(Prefs.LOCK_NAME, null);
-        if (lockNow != null) lockNow.setText(name == null ? "Ahora: el del carro" : "Ahora: " + name);
-        if (tileSound != null) setSub(tileSound, name == null ? "Del carro" : name.replaceAll("(?i)\\.wav$", ""));
+        if (lockNow != null) lockNow.setText(name == null ? "El del carro" : name.replaceAll("(?i)\\.wav$", ""));
+        setSub(tileSound, name == null ? "Sonido del carro" : name.replaceAll("(?i)\\.wav$", ""));
         if (lockList == null) return;
 
         lockList.removeAllViews();
@@ -678,28 +731,28 @@ public class MainActivity extends Activity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(0, dp(7), 0, dp(7));
+        row.setPadding(dp(16), dp(10), dp(12), dp(10));
+        row.setBackground(rounded(FIELD, 0, 0, 16));
+        LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rlp.bottomMargin = dp(8);
+        row.setLayoutParams(rlp);
 
         LinearLayout info = new LinearLayout(this);
         info.setOrientation(LinearLayout.VERTICAL);
-        TextView n = new TextView(this);
-        n.setText(f.getName());
-        n.setTextColor(WHITE);
-        n.setTextSize(16);
+        TextView n = tv(f.getName(), 16, WHITE, fSB);
         n.setSingleLine(true);
-        TextView s = new TextView(this);
+        n.setEllipsize(TextUtils.TruncateAt.END);
         String bad = LockSound.check(f);
         boolean usb = !f.getAbsolutePath().startsWith("/sdcard/");
-        s.setText(bad != null ? bad : (f.length() / 1024) + " KB · " + (usb ? "USB" : "en el carro"));
-        s.setTextColor(bad != null ? DANGER : DIM);
-        s.setTextSize(12);
+        TextView s = tv(bad != null ? bad : (f.length() / 1024) + " KB · " + (usb ? "USB" : "en el carro"),
+                12, bad != null ? DANGER : DIM, null);
         s.setSingleLine(true);
         info.addView(n);
         info.addView(s);
         row.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
 
         if (usb && bad == null) {
-            Button copy = small("COPIAR");
+            Button copy = ghost("COPIAR");
             copy.setOnClickListener(v -> {
                 String e = LockSound.copyToCar(f);
                 toast(e == null ? "Copiado al carro" : e);
@@ -707,14 +760,13 @@ public class MainActivity extends Activity {
             });
             row.addView(copy, smallLp(0));
         }
-        Button play = small("PROBAR");
+        Button play = ghost("PROBAR");
         play.setOnClickListener(v -> { String e = LockSound.preview(f); if (e != null) toast(e); });
         row.addView(play, smallLp(8));
 
-        Button use = small("USAR");
+        Button use = primary("USAR");
         use.setEnabled(bad == null);
         use.setAlpha(bad == null ? 1f : 0.35f);
-        use.setTextColor(PAPAYA);
         use.setOnClickListener(v -> {
             String e = LockSound.apply(this, f);
             toast(e == null ? "Listo. Ciérralo con la llave para oírlo." : e);
@@ -727,32 +779,25 @@ public class MainActivity extends Activity {
     // ------------------------------------------------------------ actualizar
 
     private View updContent() {
-        LinearLayout c = panel();
+        LinearLayout c = glassPanel();
         c.setGravity(Gravity.CENTER);
-        c.setPadding(dp(30), dp(24), dp(30), dp(24));
+        c.setPadding(dp(30), dp(20), dp(30), dp(20));
 
-        ImageView img = new ImageView(this);
-        img.setImageResource(R.drawable.ic_refresh);
-        c.addView(img, new LinearLayout.LayoutParams(dp(80), dp(80)));
+        c.addView(ringBadge(R.drawable.ic_refresh), new LinearLayout.LayoutParams(dp(150), dp(150)));
 
-        TextView v = new TextView(this);
-        v.setText("Versión instalada  " + Updater.installedCode(this));
-        v.setTextColor(WHITE);
-        v.setTextSize(22);
-        v.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
+        TextView v = tv("VERSIÓN " + versionName(), 22, WHITE, fXB);
+        v.setLetterSpacing(0.06f);
         v.setGravity(Gravity.CENTER);
-        v.setPadding(0, dp(14), 0, 0);
+        v.setPadding(0, dp(12), 0, 0);
         c.addView(v);
 
-        updStatus = new TextView(this);
-        updStatus.setText("Revisa si hay una versión nueva en el repositorio.");
-        updStatus.setTextColor(DIM);
-        updStatus.setTextSize(14);
+        updStatus = tv("Revisa si hay una versión nueva en el repositorio.", 14, DIM, null);
         updStatus.setGravity(Gravity.CENTER);
-        updStatus.setPadding(0, dp(10), 0, dp(18));
+        updStatus.setPadding(0, dp(8), 0, dp(16));
         c.addView(updStatus);
 
-        Button upd = outline("BUSCAR ACTUALIZACIONES");
+        Button upd = primary("BUSCAR ACTUALIZACIONES");
+        upd.setTextSize(15);
         upd.setOnClickListener(x -> {
             updStatus.setText("Revisando...");
             new Thread(() -> {
@@ -760,41 +805,47 @@ public class MainActivity extends Activity {
                 ui.post(() -> { updStatus.setText(r.message); toast(r.message); });
             }).start();
         });
-        c.addView(upd, new LinearLayout.LayoutParams(dp(360), dp(58)));
+        c.addView(upd, new LinearLayout.LayoutParams(dp(380), dp(56)));
         return c;
     }
 
-    // ------------------------------------------------------------ páginas y helpers
+    private String versionName() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Throwable t) {
+            return String.valueOf(Updater.installedCode(this));
+        }
+    }
+
+    // ------------------------------------------------------------ páginas
 
     private View page(String title, View content) {
         LinearLayout pg = new LinearLayout(this);
         pg.setOrientation(LinearLayout.VERTICAL);
-        pg.setPadding(dp(28), dp(20), dp(28), dp(20));
+        pg.setPadding(dp(32), dp(22), dp(32), dp(22));
 
         LinearLayout top = new LinearLayout(this);
         top.setGravity(Gravity.CENTER_VERTICAL);
 
         ImageView back = new ImageView(this);
         back.setImageResource(R.drawable.ic_back);
-        back.setPadding(dp(12), dp(12), dp(12), dp(12));
-        back.setBackground(ripple(rounded(PANEL, PANEL_LINE, 1)));
+        back.setPadding(dp(14), dp(14), dp(14), dp(14));
+        back.setBackground(ripple(glassOval()));
         back.setOnClickListener(v -> show(home));
-        top.addView(back, new LinearLayout.LayoutParams(dp(56), dp(56)));
+        top.addView(back, new LinearLayout.LayoutParams(dp(54), dp(54)));
 
+        LinearLayout tcol = new LinearLayout(this);
+        tcol.setOrientation(LinearLayout.VERTICAL);
+        tcol.setPadding(dp(18), 0, 0, 0);
+        TextView t = tv(title, 24, WHITE, fXB);
+        t.setLetterSpacing(0.08f);
+        tcol.addView(t);
         View bar = new View(this);
-        bar.setBackgroundColor(PAPAYA);
-        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(dp(6), dp(34));
-        bl.leftMargin = dp(18);
-        top.addView(bar, bl);
-
-        TextView t = new TextView(this);
-        t.setText(title);
-        t.setTextColor(WHITE);
-        t.setTextSize(26);
-        t.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
-        t.setLetterSpacing(0.1f);
-        t.setPadding(dp(14), 0, 0, 0);
-        top.addView(t);
+        bar.setBackground(papayaPill());
+        LinearLayout.LayoutParams bl = new LinearLayout.LayoutParams(dp(44), dp(4));
+        bl.topMargin = dp(4);
+        tcol.addView(bar, bl);
+        top.addView(tcol);
         pg.addView(top, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         LinearLayout.LayoutParams cl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
@@ -803,96 +854,167 @@ public class MainActivity extends Activity {
         return pg;
     }
 
-    private LinearLayout panel() {
+    // ------------------------------------------------------------ piezas de diseño
+
+    private Typeface font(int id, Typeface fallback) {
+        try {
+            Typeface t = getResources().getFont(id);
+            return t != null ? t : fallback;
+        } catch (Throwable e) {
+            return fallback;
+        }
+    }
+
+    private TextView tv(String s, int sp, int color, Typeface f) {
+        TextView t = new TextView(this);
+        t.setText(s);
+        t.setTextColor(color);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        if (f != null) t.setTypeface(f);
+        return t;
+    }
+
+    /** Insignia circular naranja con el icono en blanco. */
+    private ImageView badge(int icon, int sizeDp) {
+        ImageView b = new ImageView(this);
+        b.setImageResource(icon);
+        b.setColorFilter(0xFFFFFFFF);
+        int pad = dp(sizeDp) / 4;
+        b.setPadding(pad, pad, pad, pad);
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{PAPAYA_HI, PAPAYA_LO});
+        g.setShape(GradientDrawable.OVAL);
+        b.setBackground(g);
+        return b;
+    }
+
+    /** Insignia grande con anillos de resplandor alrededor. */
+    private View ringBadge(int icon) {
+        FrameLayout f = new FrameLayout(this);
+        f.addView(ringView(0x22FF8000), centered(150));
+        f.addView(ringView(0x44FF8000), centered(122));
+        f.addView(badge(icon, 92), centered(92));
+        return f;
+    }
+
+    private View ringView(int color) {
+        View v = new View(this);
+        GradientDrawable g = new GradientDrawable();
+        g.setShape(GradientDrawable.OVAL);
+        g.setColor(0x00000000);
+        g.setStroke(dp(2), color);
+        v.setBackground(g);
+        return v;
+    }
+
+    private FrameLayout.LayoutParams centered(int sizeDp) {
+        return new FrameLayout.LayoutParams(dp(sizeDp), dp(sizeDp), Gravity.CENTER);
+    }
+
+    /** Degradado oscuro para que el texto se lea sobre la ilustración. */
+    private View shade() {
+        View v = new View(this);
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{0x10000000, 0x66000000, 0xEE050608});
+        v.setBackground(g);
+        return v;
+    }
+
+    private LinearLayout chip(int icon, TextView text) {
         LinearLayout c = new LinearLayout(this);
-        c.setOrientation(LinearLayout.VERTICAL);
-        c.setBackground(rounded(PANEL, PANEL_LINE, 1));
+        c.setGravity(Gravity.CENTER_VERTICAL);
+        c.setPadding(dp(12), dp(8), dp(18), dp(8));
+        c.setBackground(glass(24));
+        ImageView i = new ImageView(this);
+        i.setImageResource(icon);
+        c.addView(i, new LinearLayout.LayoutParams(dp(20), dp(20)));
+        text.setTextColor(WHITE);
+        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        text.setTypeface(fSB);
+        text.setSingleLine(true);
+        text.setPadding(dp(10), 0, 0, 0);
+        c.addView(text);
         return c;
     }
 
-    private TextView label(String s) {
-        TextView t = new TextView(this);
-        t.setText(s);
-        t.setTextColor(DIM);
-        t.setTextSize(12);
-        t.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        t.setLetterSpacing(0.14f);
-        return t;
-    }
-
-    private TextView chip() {
-        TextView t = new TextView(this);
-        t.setTextColor(WHITE);
-        t.setTextSize(13);
-        t.setSingleLine(true);
-        t.setPadding(dp(14), dp(7), dp(14), dp(7));
-        t.setBackground(rounded(CHIP, PANEL_LINE, 1));
-        return t;
+    private LinearLayout glassPanel() {
+        LinearLayout c = new LinearLayout(this);
+        c.setOrientation(LinearLayout.VERTICAL);
+        c.setBackground(glass(26));
+        return c;
     }
 
     private TextView hint(String s) {
-        TextView t = new TextView(this);
-        t.setText(s);
-        t.setTextColor(DIM);
-        t.setTextSize(13);
+        TextView t = tv(s, 13, DIM, null);
         t.setPadding(0, dp(12), 0, 0);
         return t;
     }
 
-    private Button outline(String s) {
-        Button b = baseButton(s, 15);
-        b.setBackground(ripple(rounded(BTN, PAPAYA, 1)));
+    private Button primary(String s) {
+        Button b = baseButton(s, 12, 0xFF1A0F05);
+        b.setBackground(ripple(papayaPill()));
         return b;
     }
 
-    private Button small(String s) {
-        Button b = baseButton(s, 12);
-        b.setBackground(rounded(BTN, PANEL_LINE, 1));
+    private Button ghost(String s) {
+        Button b = baseButton(s, 12, WHITE);
+        b.setBackground(ripple(rounded(FIELD, GLASS_LINE, 1, 40)));
+        return b;
+    }
+
+    private Button baseButton(String s, int size, int color) {
+        Button b = new Button(this);
+        b.setText(s);
+        b.setAllCaps(false);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        b.setTextColor(color);
+        b.setTypeface(fSB);
+        b.setLetterSpacing(0.1f);
+        b.setStateListAnimator(null);
+        b.setMinHeight(0);
+        b.setMinimumHeight(0);
         b.setMinWidth(0);
         b.setMinimumWidth(0);
+        b.setPadding(dp(18), 0, dp(18), 0);
         return b;
     }
 
     private LinearLayout.LayoutParams smallLp(int leftDp) {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(44));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(42));
         lp.leftMargin = dp(leftDp);
         return lp;
     }
 
-    private Button baseButton(String s, int size) {
-        Button b = new Button(this);
-        b.setText(s);
-        b.setAllCaps(false);
-        b.setTextSize(size);
-        b.setTextColor(WHITE);
-        b.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
-        b.setLetterSpacing(0.08f);
-        b.setStateListAnimator(null);
-        b.setMinHeight(0);
-        b.setMinimumHeight(0);
-        return b;
-    }
-
-    private LinearLayout.LayoutParams weight() { return new LinearLayout.LayoutParams(0, dp(52), 1); }
-
-    private LinearLayout.LayoutParams weightGap() {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(52), 1);
-        lp.leftMargin = dp(8);
+    private LinearLayout.LayoutParams weight(int leftDp) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(50), 1);
+        lp.leftMargin = dp(leftDp);
         return lp;
     }
 
-    private GradientDrawable rounded(int fill, int stroke, int strokeDp) {
-        GradientDrawable g = new GradientDrawable();
-        g.setColor(fill);
-        g.setCornerRadius(dp(14));
-        if (strokeDp > 0) g.setStroke(dp(strokeDp), stroke);
+    private GradientDrawable papayaPill() {
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{PAPAYA_HI, PAPAYA_LO});
+        g.setCornerRadius(dp(60));
         return g;
     }
 
-    private GradientDrawable gradient(int top, int bottom, int stroke) {
-        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{top, bottom});
-        g.setCornerRadius(dp(20));
-        if (stroke != 0) g.setStroke(dp(1), stroke);
+    private GradientDrawable glass(int radiusDp) {
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{GLASS_TOP, GLASS_BOT});
+        g.setCornerRadius(dp(radiusDp));
+        g.setStroke(dp(1), GLASS_LINE);
+        return g;
+    }
+
+    private GradientDrawable glassOval() {
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{GLASS_TOP, GLASS_BOT});
+        g.setShape(GradientDrawable.OVAL);
+        g.setStroke(dp(1), GLASS_LINE);
+        return g;
+    }
+
+    private GradientDrawable rounded(int fill, int stroke, int strokeDp, int radiusDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(fill);
+        g.setCornerRadius(dp(radiusDp));
+        if (strokeDp > 0) g.setStroke(dp(strokeDp), stroke);
         return g;
     }
 

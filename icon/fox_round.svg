@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><defs>
+  <linearGradient id="fur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFA03A"/><stop offset="1" stop-color="#F26A00"/></linearGradient>
+  <radialGradient id="bgrad" cx="50%" cy="38%" r="75%"><stop offset="0" stop-color="#2A2F3A"/><stop offset=".55" stop-color="#12151B"/><stop offset="1" stop-color="#07080A"/></radialGradient>
+  <radialGradient id="glow" cx="50%" cy="52%" r="50%"><stop offset="0" stop-color="#FF8000" stop-opacity=".55"/><stop offset="1" stop-color="#FF8000" stop-opacity="0"/></radialGradient>
+  <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB066"/><stop offset=".5" stop-color="#FF8000" stop-opacity=".25"/><stop offset="1" stop-color="#FF8000" stop-opacity=".8"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="256" fill="url(#bgrad)"/>
+<rect x="6" y="6" width="500" height="500" rx="250" fill="none" stroke="url(#ring)" stroke-width="5"/>
+<circle cx="256" cy="262" r="230" fill="url(#glow)"/>
+<g transform="translate(256 252) scale(.8) translate(-256 -262)"><g id="foxhead">
+  <!-- silueta base -->
+  <polygon points="112,80 206,176 256,190 306,176 400,80 420,246 436,306 300,404 256,438 212,404 76,306 92,246" fill="url(#fur)"/>
+  <!-- orejas: exterior más oscuro -->
+  <polygon points="112,80 206,176 92,246" fill="#E85F00"/>
+  <polygon points="400,80 306,176 420,246" fill="#FF8A1E"/>
+  <!-- oreja interior -->
+  <polygon points="130,124 192,172 120,212" fill="#2B1307"/>
+  <polygon points="382,124 320,172 392,212" fill="#3A1A09"/>
+  <polygon points="136,138 178,170 128,198" fill="#5A2A0E"/>
+  <polygon points="376,138 334,170 384,198" fill="#6B330F"/>
+  <!-- frente -->
+  <polygon points="206,176 256,190 256,266 176,232" fill="#FF9333"/>
+  <polygon points="306,176 256,190 256,266 336,232" fill="#FFA24D"/>
+  <!-- borde de cara sombreado -->
+  <polygon points="92,246 206,176 176,232" fill="#D95800"/>
+  <polygon points="420,246 306,176 336,232" fill="#F07400"/>
+  <!-- franja del puente nasal -->
+  <polygon points="236,270 276,270 256,336" fill="#FFB067"/>
+  <!-- mejillas blancas -->
+  <polygon points="76,306 108,268 182,276 256,338 212,404" fill="#FFF1E2"/>
+  <polygon points="436,306 404,268 330,276 256,338 300,404" fill="#FFE2C8"/>
+  <polygon points="76,306 108,268 140,300" fill="#FFD9B8"/>
+  <polygon points="436,306 404,268 372,300" fill="#FFCBA0"/>
+  <!-- hocico -->
+  <polygon points="212,404 256,338 300,404 256,438" fill="#FFFFFF"/>
+  <polygon points="212,404 256,338 256,438" fill="#FFF4E8"/>
+  <!-- ojos -->
+  <polygon points="146,244 200,250 210,268 168,272" fill="#1B0E05"/>
+  <polygon points="366,244 312,250 302,268 344,272" fill="#1B0E05"/>
+  <polygon points="176,252 190,254 186,262" fill="#FFD9A0"/>
+  <polygon points="336,252 322,254 326,262" fill="#FFD9A0"/>
+  <!-- marca oscura sobre ojos -->
+  <polygon points="140,238 200,240 204,248 146,244" fill="#8A3A00" opacity=".55"/>
+  <polygon points="372,238 312,240 308,248 366,244" fill="#8A3A00" opacity=".55"/>
+  <!-- nariz -->
+  <polygon points="234,404 278,404 256,430" fill="#1B0E05"/>
+  <polygon points="244,408 256,408 250,414" fill="#6B6B6B" opacity=".6"/>
+  <!-- filos de luz -->
+  <g fill="none" stroke="#FFFFFF" stroke-opacity=".22" stroke-width="2" stroke-linejoin="round">
+    <polyline points="112,80 206,176 256,190 306,176 400,80"/>
+    <polyline points="206,176 176,232 256,266 336,232 306,176"/>
+    <polyline points="76,306 182,276 256,338 330,276 436,306"/>
+  </g>
+</g>
+</g><path d="M120 470 Q256 458 392 470" stroke="#FF8000" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>
+</svg>

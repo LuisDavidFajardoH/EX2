@@ -1,7 +1,7 @@
 {
-  "versionCode": 4,
-  "versionName": "3.1",
+  "versionCode": 5,
+  "versionName": "4.0",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "9b4123e6929bdb983d386fca39759460ce6ceeaa887a061acb76df8e0461db93",
-  "notes": "Buscar actualizaciones ya no usa caché: siempre revisa la versión más nueva."
+  "sha256": "e5a8ae590e2e4906473830edf0f3b2b5a0973c80e0d362ad80e8399d5458b06d",
+  "notes": "Rediseño completo: nuevo zorro, menú de inicio con ilustraciones, reloj, Wi-Fi e IP, pantalla de Red."
 }
