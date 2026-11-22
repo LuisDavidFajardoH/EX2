@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
     private View home, modesPage, soundPage, netPage, updPage, current;
 
     // inicio
-    private TextView clock, dateTxt, wifiChip, ipChip, modeName, modeSub;
+    private TextView clock, dateTxt, wifiChip, ipChip, modeName, modeSub, updBanner;
     private ImageView modeArt;
     private View tileSound, tileNet, tileUpd;
 
@@ -123,6 +123,7 @@ public class MainActivity extends Activity {
         TouchFx.apply(root);
         noteLaunch();
         show(home);
+        checkUpdateQuietly();
 
         new Thread(() -> {
             boolean ok = car.connect(this);
@@ -138,6 +139,25 @@ public class MainActivity extends Activity {
         super.onNewIntent(i);
         setIntent(i);
         noteLaunch();
+    }
+
+    /** Al abrir, revisa en silencio si hay versión nueva y lo avisa en el inicio. */
+    private void checkUpdateQuietly() {
+        new Thread(() -> {
+            String v = Updater.peek(this);
+            if (v != null) ui.post(() -> {
+                updBanner.setText("NUEVA VERSIÓN " + v + "  ·  TOCA PARA ACTUALIZAR");
+                updBanner.setVisibility(View.VISIBLE);
+            });
+        }).start();
+    }
+
+    private void runUpdate() {
+        updStatus.setText("Revisando...");
+        new Thread(() -> {
+            Updater.Result r = Updater.check(this, true);
+            ui.post(() -> { updStatus.setText(r.message); toast(r.message); });
+        }).start();
     }
 
     /** Anota quién abrió la app, para poder rastrear aperturas que nadie pidió. */
@@ -232,6 +252,15 @@ public class MainActivity extends Activity {
         left.addView(dateTxt);
 
         left.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 0.6f));
+
+        updBanner = tv("", 13, 0xFF1A0F05, fSB);
+        updBanner.setPadding(dp(16), dp(9), dp(16), dp(9));
+        updBanner.setBackground(papayaPill());
+        updBanner.setVisibility(View.GONE);
+        updBanner.setOnClickListener(v -> { show(updPage); runUpdate(); });
+        LinearLayout.LayoutParams ubl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        ubl.bottomMargin = dp(12);
+        left.addView(updBanner, ubl);
 
         wifiChip = new TextView(this);
         ipChip = new TextView(this);
@@ -744,9 +773,22 @@ public class MainActivity extends Activity {
             toast(LockSound.restore(this) ? "Listo: sonido original" : "No se pudo restaurar");
             refreshLock();
         });
+        Button explore = ghost("AJUSTES");
+        explore.setOnClickListener(v -> {
+            toast("Buscando ajustes del carro...");
+            new Thread(() -> {
+                String r = LockSound.discover();
+                ui.post(() -> new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog)
+                        .setTitle("Ajustes de sonido y bloqueo del carro")
+                        .setMessage(r)
+                        .setPositiveButton("Cerrar", null)
+                        .show());
+            }).start();
+        });
         actions.addView(rescan, weight(0));
         actions.addView(verify, weight(10));
         actions.addView(orig, weight(10));
+        actions.addView(explore, weight(10));
         LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         alp.topMargin = dp(14);
         c.addView(actions, alp);
@@ -868,13 +910,7 @@ public class MainActivity extends Activity {
 
         Button upd = primary("BUSCAR ACTUALIZACIONES");
         upd.setTextSize(15);
-        upd.setOnClickListener(x -> {
-            updStatus.setText("Revisando...");
-            new Thread(() -> {
-                Updater.Result r = Updater.check(this, true);
-                ui.post(() -> { updStatus.setText(r.message); toast(r.message); });
-            }).start();
-        });
+        upd.setOnClickListener(x -> runUpdate());
         c.addView(upd, new LinearLayout.LayoutParams(dp(380), dp(56)));
 
         launchInfo = tv("", 11, DIM, null);

@@ -57,6 +57,15 @@ public final class Updater {
         } catch (Throwable t) { return -1; }
     }
 
+    /** Revisa en silencio: devuelve el nombre de la versión nueva, o null si no hay (o no hay internet). */
+    public static String peek(Context c) {
+        try {
+            JSONObject m = new JSONObject(get(MANIFEST_URL, 8000));
+            if (m.getInt("versionCode") > installedCode(c)) return m.optString("versionName", "nueva");
+        } catch (Throwable t) { Log.i(T, "peek: " + t.getMessage()); }
+        return null;
+    }
+
     /** Hace todo el flujo. Pensado para llamar desde un hilo, no en la UI. */
     public static Result check(Context c, boolean install) {
         try {

@@ -85,6 +85,31 @@ public final class LockSound {
 
     // ---------------------------------------------------------------- aplicar
 
+    /** Asegura que el carro tenga activado el sonido de bloqueo (el mismo ajuste que usa Sapo). */
+    static void ensureEnabled(Context c) {
+        try {
+            String v = Settings.System.getString(c.getContentResolver(), "lock_car_audio_enable");
+            if (!"1".equals(v)) Settings.System.putString(c.getContentResolver(), "lock_car_audio_enable", "1");
+        } catch (Throwable t) { Log.w(T, "enable", t); }
+    }
+
+    /** Lista ajustes del sistema cuyo nombre sugiere sonido, bloqueo o puertas. */
+    public static String discover() {
+        StringBuilder sb = new StringBuilder();
+        for (String ns : new String[]{"system", "global", "secure"}) {
+            String out = RootShell.run(15000, "settings list " + ns);
+            if (out == null) continue;
+            for (String line : out.split("\n")) {
+                String l = line.toLowerCase(java.util.Locale.ROOT);
+                if (l.contains("lock") || l.contains("audio") || l.contains("sound") || l.contains("chime")
+                        || l.contains("welcome") || l.contains("door") || l.contains("car_")) {
+                    sb.append(ns).append(": ").append(line.length() > 140 ? line.substring(0, 140) : line).append('\n');
+                }
+            }
+        }
+        return sb.length() == 0 ? "No encontré ajustes con esos nombres (¿el acceso root local está disponible?)." : sb.toString();
+    }
+
     public static String current(Context c) {
         try { return Settings.System.getString(c.getContentResolver(), SETTING); }
         catch (Throwable t) { return null; }
@@ -119,6 +144,7 @@ public final class LockSound {
             p.edit().putString(Prefs.LOCK_ORIG, cur == null ? "" : cur).apply();
         }
         try {
+            ensureEnabled(c);
             if (!Settings.System.putString(c.getContentResolver(), SETTING, dst.getAbsolutePath())) {
                 dst.delete();
                 return "El sistema no aceptó el cambio";

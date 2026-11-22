@@ -1,7 +1,7 @@
 {
-  "versionCode": 11,
-  "versionName": "5.0",
+  "versionCode": 12,
+  "versionName": "5.1",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "18122fc0b94382536f8f1b4b67388f743838e58c75894ea83951c42de32be574",
-  "notes": "La app ya no queda corriendo en segundo plano: aplica tu modo y sonido al encender y se apaga sola."
+  "sha256": "d699be5545a081c6983915f7028569242a4b2cfb7ee923e5178f629303b4977c",
+  "notes": "Aviso de versión nueva al abrir la app, ajustes de sonido del carro visibles y sonido de bloqueo siempre activado."
 }
