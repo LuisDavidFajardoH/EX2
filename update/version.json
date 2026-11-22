@@ -1,7 +1,7 @@
 {
-  "versionCode": 7,
-  "versionName": "4.2",
+  "versionCode": 8,
+  "versionName": "4.3",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "2817716590d7cbd4a510a5a889dda3d1b2161438ce1e4778722f01ca6addc119",
-  "notes": "Se reinicia sola al actualizar, icono nuevo y interruptor de Wi-Fi."
+  "sha256": "7aab97d8442f7f59a60eca7447327213b8d9b2ce131ef6b6652e3b531d13e1ec",
+  "notes": "Interruptores visibles y respuesta táctil en todos los botones."
 }

@@ -10,6 +10,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -118,6 +119,7 @@ public class MainActivity extends Activity {
             v.setVisibility(View.GONE);
         }
         setContentView(root);
+        TouchFx.apply(root);
         show(home);
 
         KeeperService.start(this);
@@ -449,6 +451,7 @@ public class MainActivity extends Activity {
             ui.postDelayed(this::refreshNet, 1500);
             ui.postDelayed(() -> { NetInfo.scan(this); refreshNetList(); }, 3500);
         });
+        styleSwitch(wifiSwitch);
         info.addView(wifiSwitch);
 
         info.addView(hint("Toca una red de la derecha para conectarte. Si pide clave, aparece un cuadro para escribirla."));
@@ -494,6 +497,7 @@ public class MainActivity extends Activity {
             return;
         }
         for (ScanResult r : nets) netList.addView(netRow(r, r.SSID.equals(cur)));
+        TouchFx.apply(netList);
     }
 
     private View netRow(ScanResult r, boolean connected) {
@@ -584,6 +588,7 @@ public class MainActivity extends Activity {
             p.edit().putBoolean(Prefs.REMEMBER, on).apply();
             if (on) KeeperService.start(this);
         });
+        styleSwitch(sw);
         bar.addView(sw, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
         LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         blp.topMargin = dp(16);
@@ -736,6 +741,7 @@ public class MainActivity extends Activity {
             return;
         }
         for (File f : files) lockList.addView(lockRow(f));
+        TouchFx.apply(lockList);
     }
 
     private void verifyLock() {
@@ -1016,6 +1022,39 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(50), 1);
         lp.leftMargin = dp(leftDp);
         return lp;
+    }
+
+    /** Interruptor visible sobre fondo oscuro: pista clara y pulgar naranja al encender. */
+    private void styleSwitch(Switch s) {
+        int[] on = {android.R.attr.state_checked};
+        GradientDrawable thumbOn = oval(PAPAYA_HI, 28), thumbOff = oval(0xFFE6E8EB, 28);
+        StateListDrawable thumb = new StateListDrawable();
+        thumb.addState(on, thumbOn);
+        thumb.addState(new int[]{}, thumbOff);
+        GradientDrawable trackOn = pill(0xAAFF8000, 54, 30), trackOff = pill(0x66FFFFFF, 54, 30);
+        trackOff.setStroke(dp(1), 0x66FFFFFF);
+        StateListDrawable track = new StateListDrawable();
+        track.addState(on, trackOn);
+        track.addState(new int[]{}, trackOff);
+        s.setThumbDrawable(thumb);
+        s.setTrackDrawable(track);
+        s.setSwitchMinWidth(dp(54));
+    }
+
+    private GradientDrawable oval(int color, int sizeDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setShape(GradientDrawable.OVAL);
+        g.setColor(color);
+        g.setSize(dp(sizeDp), dp(sizeDp));
+        return g;
+    }
+
+    private GradientDrawable pill(int color, int wDp, int hDp) {
+        GradientDrawable g = new GradientDrawable();
+        g.setColor(color);
+        g.setCornerRadius(dp(hDp));
+        g.setSize(dp(wDp), dp(hDp));
+        return g;
     }
 
     private GradientDrawable papayaPill() {
