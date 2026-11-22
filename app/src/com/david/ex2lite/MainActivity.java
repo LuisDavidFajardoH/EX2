@@ -148,7 +148,7 @@ public class MainActivity extends Activity {
 
     @Override public void onBackPressed() {
         if (current != null && current != home) show(home);
-        else super.onBackPressed();
+        else finishAndRemoveTask();
     }
 
     private void show(View v) {

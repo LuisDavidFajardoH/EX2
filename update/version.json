@@ -1,7 +1,7 @@
 {
-  "versionCode": 5,
-  "versionName": "4.0",
+  "versionCode": 6,
+  "versionName": "4.1",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "e5a8ae590e2e4906473830edf0f3b2b5a0973c80e0d362ad80e8399d5458b06d",
-  "notes": "Rediseño completo: nuevo zorro, menú de inicio con ilustraciones, reloj, Wi-Fi e IP, pantalla de Red."
+  "sha256": "08c3cf48fa7aa777b891dbb300eb28141f6d99c4766950133a699a9f62f20ac1",
+  "notes": "Al salir, la app se cierra por completo y ya no se reabre sola."
 }
