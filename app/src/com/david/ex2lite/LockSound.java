@@ -34,6 +34,7 @@ public final class LockSound {
     /** Carpeta que la app revisa en la memoria interna y en la raíz de cada USB. */
     public static final String FOLDER = "SonidosBloqueo";
     private static final String PREFIX = "lock_";
+    private static final String SRC_NAME = "orig_src.wav";
 
     private LockSound() {}
 
@@ -93,23 +94,6 @@ public final class LockSound {
         } catch (Throwable t) { Log.w(T, "enable", t); }
     }
 
-    /** Lista ajustes del sistema cuyo nombre sugiere sonido, bloqueo o puertas. */
-    public static String discover() {
-        StringBuilder sb = new StringBuilder();
-        for (String ns : new String[]{"system", "global", "secure"}) {
-            String out = RootShell.run(15000, "settings list " + ns);
-            if (out == null) continue;
-            for (String line : out.split("\n")) {
-                String l = line.toLowerCase(java.util.Locale.ROOT);
-                if (l.contains("lock") || l.contains("audio") || l.contains("sound") || l.contains("chime")
-                        || l.contains("welcome") || l.contains("door") || l.contains("car_")) {
-                    sb.append(ns).append(": ").append(line.length() > 140 ? line.substring(0, 140) : line).append('\n');
-                }
-            }
-        }
-        return sb.length() == 0 ? "No encontré ajustes con esos nombres (¿el acceso root local está disponible?)." : sb.toString();
-    }
-
     public static String current(Context c) {
         try { return Settings.System.getString(c.getContentResolver(), SETTING); }
         catch (Throwable t) { return null; }
@@ -125,15 +109,21 @@ public final class LockSound {
         if (why != null) return why;
 
         File dir = c.getFilesDir();
-        File dst = new File(dir, PREFIX + System.currentTimeMillis() + ".wav");
-        try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(dst)) {
+        // Guardamos el original aparte para poder cambiar el volumen después sin perder calidad.
+        File keepSrc = new File(dir, SRC_NAME);
+        try (InputStream in = new FileInputStream(src); OutputStream out = new FileOutputStream(keepSrc)) {
             byte[] buf = new byte[16 * 1024];
             int n;
             while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
         } catch (Exception e) {
             Log.w(T, "copy", e);
-            dst.delete();
             return "No se pudo copiar el archivo";
+        }
+        File dst = new File(dir, PREFIX + System.currentTimeMillis() + ".wav");
+        double g = WavGain.process(keepSrc, dst, Prefs.get(c).getInt(Prefs.LOCK_GAIN, 0));
+        if (g < 0) {
+            // Formato que no sabemos subir (no es PCM de 16 bits): se usa tal cual.
+            WavGain.process(keepSrc, dst, WavGain.NORMAL);
         }
         dst.setReadable(true, false);
 
@@ -159,6 +149,35 @@ public final class LockSound {
         return null;
     }
 
+    /** Cambia el volumen del sonido ya elegido. Devuelve un mensaje para mostrar. */
+    public static String setGain(Context c, int level) {
+        Prefs.get(c).edit().putInt(Prefs.LOCK_GAIN, level).apply();
+        File src = new File(c.getFilesDir(), SRC_NAME);
+        if (!src.exists() || !Prefs.get(c).contains(Prefs.LOCK_NAME)) {
+            return "Listo. Se aplicará al próximo sonido que elijas.";
+        }
+        File dst = new File(c.getFilesDir(), PREFIX + System.currentTimeMillis() + ".wav");
+        double g = WavGain.process(src, dst, level);
+        if (g < 0) {
+            dst.delete();
+            return g == -2 ? "Este .wav no es de 16 bits; no puedo subirle el volumen."
+                           : "No se pudo procesar el archivo.";
+        }
+        dst.setReadable(true, false);
+        try {
+            ensureEnabled(c);
+            if (!Settings.System.putString(c.getContentResolver(), SETTING, dst.getAbsolutePath())) {
+                dst.delete();
+                return "El sistema no aceptó el cambio";
+            }
+        } catch (Throwable t) {
+            dst.delete();
+            return "Sin permiso para cambiar el ajuste";
+        }
+        cleanup(c, dst);
+        return level == 0 ? "Volumen original." : String.format(java.util.Locale.US, "Listo: +%.0f dB. Ciérralo con la llave para oírlo.", g);
+    }
+
     /** Vuelve al sonido que tenía el carro antes de usar la app. */
     public static boolean restore(Context c) {
         SharedPreferences p = Prefs.get(c);
@@ -170,6 +189,7 @@ public final class LockSound {
         if (ok) {
             p.edit().remove(Prefs.LOCK_NAME).remove(Prefs.LOCK_ORIG).apply();
             cleanup(c, null);
+            new File(c.getFilesDir(), SRC_NAME).delete();
         }
         return ok;
     }
@@ -258,7 +278,13 @@ public final class LockSound {
             player = new MediaPlayer();
             player.setAudioAttributes(attrs());
             player.setVolume(1f, 1f);
-            player.setDataSource(f.getAbsolutePath());
+            File play = f;
+            int gain = Prefs.get(c).getInt(Prefs.LOCK_GAIN, 0);
+            if (gain > 0) {
+                File tmp = new File(c.getCacheDir(), "preview.wav");
+                if (WavGain.process(f, tmp, gain) >= 0) play = tmp;
+            }
+            player.setDataSource(play.getAbsolutePath());
             player.setOnCompletionListener(mp -> { stopPreview(); abandon(am); done.on(null); });
             player.setOnErrorListener((mp, what, extra) -> {
                 stopPreview(); abandon(am);

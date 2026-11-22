@@ -70,7 +70,7 @@ public class MainActivity extends Activity {
 
     // sonido
     private TextView lockNow;
-    private LinearLayout lockList;
+    private LinearLayout lockList, gainRow;
 
     // red
     private TextView netSsid, netIp, netSignal;
@@ -773,25 +773,32 @@ public class MainActivity extends Activity {
             toast(LockSound.restore(this) ? "Listo: sonido original" : "No se pudo restaurar");
             refreshLock();
         });
-        Button explore = ghost("AJUSTES");
-        explore.setOnClickListener(v -> {
-            toast("Buscando ajustes del carro...");
-            new Thread(() -> {
-                String r = LockSound.discover();
-                ui.post(() -> new AlertDialog.Builder(this, android.R.style.Theme_Material_Dialog)
-                        .setTitle("Ajustes de sonido y bloqueo del carro")
-                        .setMessage(r)
-                        .setPositiveButton("Cerrar", null)
-                        .show());
-            }).start();
-        });
         actions.addView(rescan, weight(0));
         actions.addView(verify, weight(10));
         actions.addView(orig, weight(10));
-        actions.addView(explore, weight(10));
         LinearLayout.LayoutParams alp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         alp.topMargin = dp(14);
         c.addView(actions, alp);
+
+        TextView gl = tv("VOLUMEN DEL SONIDO", 11, DIM, fSB);
+        gl.setLetterSpacing(0.3f);
+        gl.setPadding(0, dp(14), 0, dp(6));
+        c.addView(gl);
+        LinearLayout gains = new LinearLayout(this);
+        String[] gn = {"NORMAL", "FUERTE", "MÁXIMO"};
+        for (int i = 0; i < 3; i++) {
+            final int lvl = i;
+            Button gb = ghost(gn[i]);
+            gb.setTag("gain" + i);
+            gb.setOnClickListener(v -> {
+                toast(LockSound.setGain(this, lvl));
+                refreshGain();
+            });
+            gains.addView(gb, weight(i == 0 ? 0 : 10));
+        }
+        c.addView(gains, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        gainRow = gains;
+        refreshGain();
 
         ScrollView sv = new ScrollView(this);
         sv.setVerticalScrollBarEnabled(false);
@@ -820,6 +827,19 @@ public class MainActivity extends Activity {
         }
         for (File f : files) lockList.addView(lockRow(f));
         TouchFx.apply(lockList);
+    }
+
+    /** Marca en naranja el nivel de volumen elegido. */
+    private void refreshGain() {
+        if (gainRow == null) return;
+        int sel = p.getInt(Prefs.LOCK_GAIN, 0);
+        for (int i = 0; i < 3; i++) {
+            Button b = (Button) gainRow.findViewWithTag("gain" + i);
+            if (b == null) continue;
+            boolean on = i == sel;
+            b.setBackground(on ? ripple(papayaPill()) : ripple(rounded(FIELD, GLASS_LINE, 1, 40)));
+            b.setTextColor(on ? 0xFF1A0F05 : WHITE);
+        }
     }
 
     private void verifyLock() {

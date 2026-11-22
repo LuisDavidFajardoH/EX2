@@ -11,6 +11,7 @@ public final class Prefs {
     public static final String LOCK_ORIG = "lock_orig";  // sonido que tenía el carro
     public static final String WATCH = "watch";          // vigilar cambios en segundo plano (apagado por defecto)
     public static final String REOPEN = "reopen";        // reabrir la app tras una actualización
+    public static final String LOCK_GAIN = "lock_gain";  // 0 normal, 1 fuerte, 2 máximo
     public static final String LOCK_NAME = "lock_name";  // nombre del sonido elegido
 
     /** Modos guardados por el usuario. */
