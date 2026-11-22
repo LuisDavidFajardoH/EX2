@@ -1,7 +1,7 @@
 {
-  "versionCode": 2,
-  "versionName": "2.0",
+  "versionCode": 3,
+  "versionName": "3.0",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "33fb6fd0558d6d0097a37373cb86fbe783559bbe8583f15a09edebfb5b327960",
-  "notes": "Modos Ciudad/Autopista, sonido persistente, copiar .wav desde USB, rediseño con zorro."
+  "sha256": "97e9d21c979cb7d607af72110e60a241a97b30dcae585887a0aeb255cce60af7",
+  "notes": "Nuevo menú de inicio con reloj, Wi-Fi e IP, pantalla de Red para elegir redes y rediseño completo."
 }

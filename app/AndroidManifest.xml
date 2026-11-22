@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.david.ex2lite"
     android:sharedUserId="android.uid.system"
-    android:versionCode="2" android:versionName="2.0">
+    android:versionCode="3" android:versionName="3.0">
 
     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="28" />
 
@@ -16,6 +16,11 @@
     <!-- Actualización en línea -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Red Wi-Fi: ver y elegir redes -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Arranque -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
