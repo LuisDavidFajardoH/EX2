@@ -73,6 +73,8 @@ public class MainActivity extends Activity {
 
     // red
     private TextView netSsid, netIp, netSignal;
+    private Switch wifiSwitch;
+    private boolean syncingSwitch;
     private LinearLayout netList;
     private final ScanReceiver scanRx = new ScanReceiver(this);
     private boolean scanRegistered;
@@ -342,9 +344,17 @@ public class MainActivity extends Activity {
         String ssid = NetInfo.ssid(this);
         String ip = NetInfo.ip(this);
         Integer rssi = NetInfo.rssi(this);
-        String wTxt = ssid != null ? ssid : "Sin Wi-Fi";
+        String wTxt = ssid != null ? ssid : (NetInfo.enabled(this) ? "Sin conexión" : "Wi-Fi apagado");
         String iTxt = ip != null ? ip : "Sin IP";
 
+        if (wifiSwitch != null) {
+            boolean on = NetInfo.enabled(this);
+            if (wifiSwitch.isChecked() != on) {
+                syncingSwitch = true;
+                wifiSwitch.setChecked(on);
+                syncingSwitch = false;
+            }
+        }
         wifiChip.setText(wTxt);
         ipChip.setText(iTxt);
         netSsid.setText(wTxt);
@@ -427,6 +437,20 @@ public class MainActivity extends Activity {
         netSignal.setPadding(0, dp(8), 0, 0);
         info.addView(netSignal);
 
+        wifiSwitch = new Switch(this);
+        wifiSwitch.setText("Wi-Fi");
+        wifiSwitch.setTextColor(WHITE);
+        wifiSwitch.setTextSize(17);
+        wifiSwitch.setTypeface(fSB);
+        wifiSwitch.setPadding(0, dp(14), 0, 0);
+        wifiSwitch.setOnCheckedChangeListener((v, on) -> {
+            if (syncingSwitch) return;
+            if (!NetInfo.setEnabled(this, on)) toast("No pude cambiar el Wi-Fi");
+            ui.postDelayed(this::refreshNet, 1500);
+            ui.postDelayed(() -> { NetInfo.scan(this); refreshNetList(); }, 3500);
+        });
+        info.addView(wifiSwitch);
+
         info.addView(hint("Toca una red de la derecha para conectarte. Si pide clave, aparece un cuadro para escribirla."));
         row.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
 
@@ -461,6 +485,10 @@ public class MainActivity extends Activity {
         netList.removeAllViews();
         String cur = NetInfo.ssid(this);
         List<ScanResult> nets = NetInfo.nearby(this);
+        if (!NetInfo.enabled(this)) {
+            netList.addView(hint("El Wi-Fi está apagado. Enciéndelo con el interruptor."));
+            return;
+        }
         if (nets.isEmpty()) {
             netList.addView(hint("No veo redes todavía. Toca BUSCAR o revisa que el Wi-Fi esté encendido."));
             return;

@@ -21,6 +21,16 @@ final class NetInfo {
         return (WifiManager) c.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
+    static boolean enabled(Context c) {
+        WifiManager wm = wifi(c);
+        return wm != null && wm.isWifiEnabled();
+    }
+
+    static boolean setEnabled(Context c, boolean on) {
+        WifiManager wm = wifi(c);
+        return wm != null && wm.setWifiEnabled(on);
+    }
+
     /** Nombre de la red conectada, o null si no hay. */
     static String ssid(Context c) {
         WifiManager wm = wifi(c);

@@ -1,7 +1,7 @@
 {
-  "versionCode": 6,
-  "versionName": "4.1",
+  "versionCode": 7,
+  "versionName": "4.2",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "08c3cf48fa7aa777b891dbb300eb28141f6d99c4766950133a699a9f62f20ac1",
-  "notes": "Al salir, la app se cierra por completo y ya no se reabre sola."
+  "sha256": "2817716590d7cbd4a510a5a889dda3d1b2161438ce1e4778722f01ca6addc119",
+  "notes": "Se reinicia sola al actualizar, icono nuevo y interruptor de Wi-Fi."
 }

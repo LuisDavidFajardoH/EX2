@@ -24,20 +24,25 @@ defs = """<defs>
 </defs>"""
 swoosh = '<path d="M120 470 Q256 458 392 470" stroke="#FF8000" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>'
 
+ifrag = (ICON / "fox_icon.svgfrag").read_text()
+idefs = """<defs>
+  <linearGradient id="pap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB04A"/><stop offset=".55" stop-color="#FF8000"/><stop offset="1" stop-color="#E05A00"/></linearGradient>
+  <radialGradient id="shine" cx="30%" cy="18%" r="70%"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".45"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+</defs>"""
+
 def icon_svg(rx):
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{defs}
-<rect width="512" height="512" rx="{rx}" fill="url(#bgrad)"/>
-<rect x="6" y="6" width="500" height="500" rx="{rx-6}" fill="none" stroke="url(#ring)" stroke-width="5"/>
-<circle cx="256" cy="262" r="230" fill="url(#glow)"/>
-<g transform="translate(256 252) scale(.8) translate(-256 -262)">{frag}</g>{swoosh}
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{idefs}
+<rect width="512" height="512" rx="{rx}" fill="url(#pap)"/>
+<rect width="512" height="512" rx="{rx}" fill="url(#shine)"/>
+<g transform="translate(256 262) scale(.78) translate(-256 -262)">{ifrag}</g>
 </svg>"""
 
 (ICON / "fox.svg").write_text(icon_svg(112))
 (ICON / "fox_round.svg").write_text(icon_svg(256))
-(ICON / "fox_fg.svg").write_text(f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{defs}
-<g transform="translate(256 256) scale(.8) translate(-256 -262)">{frag}</g></svg>""")
-(ICON / "fox_bg.svg").write_text(f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{defs}
-<rect width="512" height="512" fill="url(#bgrad)"/><circle cx="256" cy="262" r="260" fill="url(#glow)" opacity=".7"/></svg>""")
+(ICON / "fox_fg.svg").write_text(f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{idefs}
+<g transform="translate(256 256) scale(.8) translate(-256 -262)">{ifrag}</g></svg>""")
+(ICON / "fox_bg.svg").write_text(f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{idefs}
+<rect width="512" height="512" fill="url(#pap)"/><rect width="512" height="512" fill="url(#shine)"/></svg>""")
 (ICON / "fox_hero.svg").write_text(f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">{defs}
 <circle cx="256" cy="262" r="250" fill="url(#glow)"/>
 <g transform="translate(256 262) scale(.86) translate(-256 -262)">{frag}</g></svg>""")

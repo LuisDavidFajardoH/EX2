@@ -1,0 +1,16 @@
+<g id="foxicon">
+  <polygon points="112,80 206,176 256,190 306,176 400,80 420,246 436,306 300,404 256,438 212,404 76,306 92,246" fill="#14161B"/>
+  <polygon points="112,80 206,176 92,246" fill="#1E2128"/>
+  <polygon points="400,80 306,176 420,246" fill="#262A32"/>
+  <polygon points="134,126 190,172 122,208" fill="#FF8000"/>
+  <polygon points="378,126 322,172 390,208" fill="#FF9A2E"/>
+  <polygon points="206,176 256,190 256,266 176,232" fill="#2A2E37"/>
+  <polygon points="306,176 256,190 256,266 336,232" fill="#323742"/>
+  <polygon points="76,306 108,268 182,276 256,338 212,404" fill="#FFF3E6"/>
+  <polygon points="436,306 404,268 330,276 256,338 300,404" fill="#FFE3CB"/>
+  <polygon points="212,404 256,338 300,404 256,438" fill="#FFFFFF"/>
+  <polygon points="146,244 200,250 210,268 168,272" fill="#FF8000"/>
+  <polygon points="366,244 312,250 302,268 344,272" fill="#FF8000"/>
+  <polygon points="236,270 276,270 256,336" fill="#FF8000" opacity=".9"/>
+  <polygon points="234,404 278,404 256,430" fill="#14161B"/>
+</g>
