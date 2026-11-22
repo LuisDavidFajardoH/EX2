@@ -1,7 +1,7 @@
 {
-  "versionCode": 3,
-  "versionName": "3.0",
+  "versionCode": 4,
+  "versionName": "3.1",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "97e9d21c979cb7d607af72110e60a241a97b30dcae585887a0aeb255cce60af7",
-  "notes": "Nuevo menú de inicio con reloj, Wi-Fi e IP, pantalla de Red para elegir redes y rediseño completo."
+  "sha256": "9b4123e6929bdb983d386fca39759460ce6ceeaa887a061acb76df8e0461db93",
+  "notes": "Buscar actualizaciones ya no usa caché: siempre revisa la versión más nueva."
 }

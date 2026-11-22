@@ -108,11 +108,18 @@ public final class Updater {
         cx.setReadTimeout(timeout);
         cx.setInstanceFollowRedirects(true);
         cx.setRequestProperty("User-Agent", "EX2Lite");
+        cx.setUseCaches(false);
+        cx.setRequestProperty("Cache-Control", "no-cache");
         return cx;
     }
 
+    /** Agrega la hora actual a la URL para que GitHub no sirva una copia en caché. */
+    private static String nocache(String url) {
+        return url + (url.contains("?") ? "&" : "?") + "t=" + System.currentTimeMillis();
+    }
+
     private static String get(String url, int timeout) throws Exception {
-        HttpURLConnection cx = open(url, timeout);
+        HttpURLConnection cx = open(nocache(url), timeout);
         try (InputStream in = cx.getInputStream()) {
             java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[8192];
@@ -123,7 +130,7 @@ public final class Updater {
     }
 
     private static void download(String url, File dst, int timeout) throws Exception {
-        HttpURLConnection cx = open(url, timeout);
+        HttpURLConnection cx = open(nocache(url), timeout);
         try (InputStream in = cx.getInputStream(); OutputStream out = new FileOutputStream(dst)) {
             byte[] buf = new byte[16384];
             int n;
