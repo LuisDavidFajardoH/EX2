@@ -795,7 +795,7 @@ public class MainActivity extends Activity {
             row.addView(copy, smallLp(0));
         }
         Button play = ghost("PROBAR");
-        play.setOnClickListener(v -> { String e = LockSound.preview(f); if (e != null) toast(e); });
+        play.setOnClickListener(v -> LockSound.preview(this, f, msg -> ui.post(() -> { if (msg != null) toast(msg); })));
         row.addView(play, smallLp(8));
 
         Button use = primary("USAR");

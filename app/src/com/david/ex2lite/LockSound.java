@@ -214,19 +214,52 @@ public final class LockSound {
 
     private static MediaPlayer player;
 
-    public static String preview(File f) {
+    /** Resultado asíncrono de la prueba: null si sonó bien, o el motivo del fallo. */
+    public interface Done { void on(String problem); }
+
+    public static void preview(android.content.Context c, File f, Done done) {
         stopPreview();
+        final android.media.AudioManager am =
+                (android.media.AudioManager) c.getSystemService(android.content.Context.AUDIO_SERVICE);
         try {
+            int vol = am.getStreamVolume(android.media.AudioManager.STREAM_MUSIC);
+            if (vol == 0) { done.on("El volumen de medios está en 0. Súbelo y prueba otra vez."); return; }
+
+            focus = new android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                    .setAudioAttributes(attrs()).build();
+            am.requestAudioFocus(focus);
+
             player = new MediaPlayer();
+            player.setAudioAttributes(attrs());
+            player.setVolume(1f, 1f);
             player.setDataSource(f.getAbsolutePath());
-            player.setOnCompletionListener(mp -> stopPreview());
-            player.prepare();
-            player.start();
-            return null;
+            player.setOnCompletionListener(mp -> { stopPreview(); abandon(am); done.on(null); });
+            player.setOnErrorListener((mp, what, extra) -> {
+                stopPreview(); abandon(am);
+                done.on("No se pudo reproducir (error " + what + "/" + extra + "). Revisa que sea un .wav normal.");
+                return true;
+            });
+            player.setOnPreparedListener(mp -> {
+                mp.start();
+                done.on("Sonando... (volumen " + vol + ")");
+            });
+            player.prepareAsync();
         } catch (Exception e) {
-            stopPreview();
-            return "No se pudo reproducir";
+            stopPreview(); abandon(am);
+            done.on("No se pudo reproducir: " + e.getMessage());
         }
+    }
+
+    private static android.media.AudioAttributes attrs() {
+        return new android.media.AudioAttributes.Builder()
+                .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC).build();
+    }
+
+    private static android.media.AudioFocusRequest focus;
+
+    private static void abandon(android.media.AudioManager am) {
+        if (focus != null) { try { am.abandonAudioFocusRequest(focus); } catch (Throwable ignored) {} focus = null; }
     }
 
     public static void stopPreview() {

@@ -1,7 +1,7 @@
 {
-  "versionCode": 8,
-  "versionName": "4.3",
+  "versionCode": 9,
+  "versionName": "4.4",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "7aab97d8442f7f59a60eca7447327213b8d9b2ce131ef6b6652e3b531d13e1ec",
-  "notes": "Interruptores visibles y respuesta táctil en todos los botones."
+  "sha256": "c40eef37e06d25accc3e98edc38865b1593c44f2fb1a384b7341f47ae7453e1a",
+  "notes": "Probar el sonido de bloqueo: usa el canal de medios, pide foco de audio y explica por qué falla."
 }
