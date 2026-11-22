@@ -1,7 +1,7 @@
 {
-  "versionCode": 13,
-  "versionName": "5.2",
+  "versionCode": 14,
+  "versionName": "6.0",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "e76a719f513667444cd8ecdd117d9168cce153b4cbdb208e82a1b15f94a4d163",
-  "notes": "Volumen del sonido de bloqueo (Normal, Fuerte, Máximo) y se quita el botón de ajustes."
+  "sha256": "7bda45d612f5c00039041026288d52cb32292cf0fc5e7971cb2df3b40a545139",
+  "notes": "Se quitan los modos de manejo. La app queda para sonido de bloqueo, red y actualizaciones."
 }

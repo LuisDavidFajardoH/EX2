@@ -2,14 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.david.ex2lite"
     android:sharedUserId="android.uid.system"
-    android:versionCode="13" android:versionName="5.2">
+    android:versionCode="14" android:versionName="6.0">
 
     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="28" />
 
     <!-- Modo de manejo / regeneración -->
-    <uses-permission android:name="android.car.permission.CAR_POWERTRAIN" />
-    <uses-permission android:name="android.car.permission.CAR_VENDOR_EXTENSION" />
-    <uses-permission android:name="android.car.permission.CAR_POWER" />
     <!-- Sonido de bloqueo (Settings.System lock_car_audio_path) -->
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />

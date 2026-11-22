@@ -3,7 +3,7 @@
 App mínima para la pantalla del **Geely EX2 (IHU629G, Android 9)**. Solo hace dos cosas:
 
 1. **Sonido de bloqueo personalizado:** eliges un `.wav` y suena al cerrar el carro con la llave.
-2. **Memoria de modo de manejo:** guarda Eco/Comfort/Sport y la regeneración Baja/Media/Alta, y los vuelve a poner cada vez que prendes o despiertas el carro.
+
 
 APK de ~75 KB, sin internet, sin cuentas y sin nada en `/system`. Un reset de fábrica lo revierte todo.
 
@@ -27,7 +27,7 @@ La app queda en la lista de apps con el nombre **EX2 Lite**.
 
 ### ⚠️ Si también tienes Sapo
 
-Apaga en Sapo **el cambio de sonido de bloqueo** y **el recordar modo de manejo/regeneración**.
+
 Si los dos hacen lo mismo, se pelean y el resultado es impredecible.
 
 ## Usar
@@ -40,7 +40,7 @@ Si los dos hacen lo mismo, se pelean y el resultado es impredecible.
 3. La app guarda una copia, así que después puedes sacar la USB.
 4. **Volver al original** deja el sonido que tenía el carro.
 
-**Modo de manejo**
+
 - Toca el modo y la regeneración que quieras: se aplican al instante y quedan guardados.
 - Con **Recordar al encender** prendido, se vuelven a poner solos durante los primeros ~20 s
   después de prender o despertar el carro, y solo si está en **P**. Si los cambias durante el
@@ -71,7 +71,7 @@ y escribir `Settings.System`.
 
 | Archivo | Qué hace |
 |---|---|
-| `CarLink.java` | Lee y escribe modo de manejo (`570491136`) y regeneración (`537003264`) por `CarPropertyManager`; escucha suspender/despertar por `CarPowerManager`. |
+
 | `LockSound.java` | Busca `.wav`, los valida (cabecera RIFF/WAVE, ≤ 1 MB), copia el elegido a la carpeta privada de la app y apunta `Settings.System lock_car_audio_path` a esa copia. |
 | `KeeperService.java` | Servicio en primer plano que, tras arrancar o despertar, abre una ventana de 20 s y reescribe lo guardado si el carro volvió a sus valores de fábrica. |
 | `BootReceiver.java` | Arranca el servicio al encender la pantalla o al actualizar la app. |
@@ -96,7 +96,7 @@ Después del primer install, la app se actualiza sola por internet. No se necesi
 ### Cómo funciona
 - El repo guarda `update/version.json` y el `update/ex2lite.apk`. Ambos se leen desde la rama `main`.
 - La app, con internet en la pantalla, lee `version.json`. Si el `versionCode` es mayor que el instalado, descarga el APK, **verifica el SHA-256** y lo instala vía `pm install` por el adbd local (root). Si el hash no coincide, no instala nada.
-- Botón **Buscar actualizaciones** en la pantalla de modo de manejo.
+
 
 ### Configurar (una vez)
 1. Crea un repo en GitHub, por ejemplo `LuisDavidFajardoH/ex2`, y sube este proyecto.

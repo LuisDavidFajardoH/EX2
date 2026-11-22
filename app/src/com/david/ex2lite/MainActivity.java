@@ -48,25 +48,19 @@ public class MainActivity extends Activity {
             WHITE = 0xFFF5F5F5, DIM = 0xFF9AA1AB, SOFT = 0xFFD7DBE0, DANGER = 0xFFFF5A4E,
             GLASS_TOP = 0xE6222833, GLASS_BOT = 0xE60E1116, GLASS_LINE = 0x33FFFFFF, FIELD = 0x40FFFFFF;
 
-    static final int CITY_DRIVE = 1, CITY_REGEN = 2;   // Eco + Media
-    static final int HWY_DRIVE = 3, HWY_REGEN = 2;     // Sport + Media
     static final int REQ_LOCATION = 7;
 
-    private final CarLink car = new CarLink();
     private final Handler ui = new Handler(Looper.getMainLooper());
     private SharedPreferences p;
     private Typeface fXB, fSB, fLT;
 
     private FrameLayout root;
-    private View home, modesPage, soundPage, netPage, updPage, current;
+    private View home, soundPage, netPage, updPage, current;
 
     // inicio
-    private TextView clock, dateTxt, wifiChip, ipChip, modeName, modeSub, updBanner;
-    private ImageView modeArt;
-    private View tileSound, tileNet, tileUpd;
-
-    // manejo
-    private FrameLayout cityCard, hwyCard;
+    private TextView clock, dateTxt, wifiChip, ipChip, updBanner;
+    private View tileNet, tileUpd;
+    private TextView homeSound;
 
     // sonido
     private TextView lockNow;
@@ -111,11 +105,10 @@ public class MainActivity extends Activity {
         root.addView(bg, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         home = homePage();
-        modesPage = page("MANEJO", modesContent());
         soundPage = page("SONIDO DE BLOQUEO", soundContent());
         netPage = page("RED WI-FI", netContent());
         updPage = page("ACTUALIZAR", updContent());
-        for (View v : new View[]{home, modesPage, soundPage, netPage, updPage}) {
+        for (View v : new View[]{home, soundPage, netPage, updPage}) {
             root.addView(v, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             v.setVisibility(View.GONE);
         }
@@ -124,15 +117,6 @@ public class MainActivity extends Activity {
         noteLaunch();
         show(home);
         checkUpdateQuietly();
-
-        new Thread(() -> {
-            boolean ok = car.connect(this);
-            if (ok) car.listenChanges(new CarLink.Changes(v -> ui.post(this::refreshMode)));
-            ui.post(() -> {
-                refreshMode();
-                if (!ok) toast("No se pudo conectar con el carro");
-            });
-        }).start();
     }
 
     @Override protected void onNewIntent(android.content.Intent i) {
@@ -177,7 +161,6 @@ public class MainActivity extends Activity {
     @Override protected void onResume() {
         super.onResume();
         registerScan();
-        refreshMode();
         refreshLock();
         refreshNet();
         ui.removeCallbacks(periodic);
@@ -197,7 +180,7 @@ public class MainActivity extends Activity {
     }
 
     private void show(View v) {
-        for (View x : new View[]{home, modesPage, soundPage, netPage, updPage}) {
+        for (View x : new View[]{home, soundPage, netPage, updPage}) {
             x.setVisibility(x == v ? View.VISIBLE : View.GONE);
         }
         current = v;
@@ -207,7 +190,6 @@ public class MainActivity extends Activity {
     }
 
     private void refreshAll() {
-        refreshMode();
         refreshLock();
         refreshNet();
         updateClock();
@@ -275,16 +257,14 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.8f);
         rlp.leftMargin = dp(20);
 
-        View big = modeHero();
+        View big = soundHero();
         right.addView(big, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.12f));
 
         LinearLayout stack = new LinearLayout(this);
         stack.setOrientation(LinearLayout.VERTICAL);
-        tileSound = wideTile("SONIDO", R.drawable.ic_music, () -> show(soundPage));
         tileNet = wideTile("RED", R.drawable.ic_wifi, () -> show(netPage));
         tileUpd = wideTile("ACTUALIZAR", R.drawable.ic_refresh, () -> show(updPage));
-        stack.addView(tileSound, stackLp(0));
-        stack.addView(tileNet, stackLp(14));
+        stack.addView(tileNet, stackLp(0));
         stack.addView(tileUpd, stackLp(14));
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
         slp.leftMargin = dp(16);
@@ -294,20 +274,26 @@ public class MainActivity extends Activity {
         return row;
     }
 
-    /** Tarjeta grande con la ilustración del modo activo. */
-    private View modeHero() {
+    /** Tarjeta grande del inicio: el sonido de bloqueo actual. */
+    private View soundHero() {
         FrameLayout f = new FrameLayout(this);
-        f.setBackground(ripple(rounded(0xFF111318, GLASS_LINE, 1, 26)));
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{0xFF4A2400, 0xFF14161B});
+        g.setCornerRadius(dp(26));
+        g.setStroke(dp(1), GLASS_LINE);
+        f.setBackground(ripple(g));
         f.setOutlineProvider(new RoundedOutline(dp(26)));
         f.setClipToOutline(true);
-        f.setOnClickListener(v -> show(modesPage));
+        f.setOnClickListener(v -> show(soundPage));
 
-        modeArt = new ImageView(this);
-        modeArt.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        f.addView(modeArt, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        f.addView(shade(), new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        ImageView wave = new ImageView(this);
+        wave.setImageResource(R.drawable.wave);
+        wave.setScaleType(ImageView.ScaleType.FIT_XY);
+        wave.setAlpha(0.75f);
+        FrameLayout.LayoutParams wl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(110), Gravity.CENTER_VERTICAL);
+        wl.setMargins(dp(14), 0, dp(14), dp(30));
+        f.addView(wave, wl);
 
-        ImageView badge = badge(R.drawable.ic_speed, 52);
+        ImageView badge = badge(R.drawable.ic_music, 52);
         FrameLayout.LayoutParams bl = new FrameLayout.LayoutParams(dp(52), dp(52), Gravity.TOP | Gravity.END);
         bl.setMargins(0, dp(18), dp(18), 0);
         f.addView(badge, bl);
@@ -315,21 +301,20 @@ public class MainActivity extends Activity {
         LinearLayout txt = new LinearLayout(this);
         txt.setOrientation(LinearLayout.VERTICAL);
         txt.setPadding(dp(24), dp(20), dp(24), dp(22));
-        TextView lbl = tv("MODO ACTUAL", 11, PAPAYA, fSB);
+        TextView lbl = tv("SONIDO DE BLOQUEO", 11, PAPAYA, fSB);
         lbl.setLetterSpacing(0.3f);
         txt.addView(lbl);
-        modeName = tv("", 34, WHITE, fXB);
-        modeName.setMaxLines(1);
-        modeName.setEllipsize(TextUtils.TruncateAt.END);
-        txt.addView(modeName);
-        modeSub = tv("", 14, SOFT, null);
-        modeSub.setPadding(0, dp(2), 0, dp(12));
-        txt.addView(modeSub);
-        TextView pill = tv("TOCA PARA CAMBIAR  ›", 12, 0xFF1A0F05, fSB);
+        homeSound = tv("", 26, WHITE, fXB);
+        homeSound.setSingleLine(true);
+        homeSound.setEllipsize(TextUtils.TruncateAt.END);
+        txt.addView(homeSound);
+        TextView pill = tv("TOCA PARA ELEGIR  \u203A", 12, 0xFF1A0F05, fSB);
         pill.setLetterSpacing(0.12f);
         pill.setPadding(dp(16), dp(8), dp(16), dp(8));
         pill.setBackground(papayaPill());
-        txt.addView(pill, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout.LayoutParams pl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        pl.topMargin = dp(12);
+        txt.addView(pill, pl);
         f.addView(txt, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
         return f;
     }
@@ -606,139 +591,6 @@ public class MainActivity extends Activity {
         ui.postDelayed(this::refreshNet, 3000);
     }
 
-    // ------------------------------------------------------------ manejo
-
-    private View modesContent() {
-        LinearLayout c = new LinearLayout(this);
-        c.setOrientation(LinearLayout.VERTICAL);
-
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        cityCard = modeCard("CIUDAD", "Eco · Regeneración media", R.drawable.card_city,
-                () -> applyMode(CITY_DRIVE, CITY_REGEN));
-        hwyCard = modeCard("AUTOPISTA", "Sport · Regeneración media", R.drawable.card_highway,
-                () -> applyMode(HWY_DRIVE, HWY_REGEN));
-        row.addView(cityCard, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1);
-        lp2.leftMargin = dp(18);
-        row.addView(hwyCard, lp2);
-        c.addView(row, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-
-        LinearLayout bar = new LinearLayout(this);
-        bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(20), dp(8), dp(20), dp(8));
-        bar.setBackground(glass(18));
-        Switch sw = new Switch(this);
-        sw.setText("Recordar mi modo al encender el carro");
-        sw.setTextColor(WHITE);
-        sw.setTextSize(16);
-        sw.setTypeface(fSB);
-        sw.setChecked(p.getBoolean(Prefs.REMEMBER, true));
-        sw.setOnCheckedChangeListener((v, on) -> {
-            p.edit().putBoolean(Prefs.REMEMBER, on).apply();
-        });
-        styleSwitch(sw);
-        bar.addView(sw, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
-
-        Switch watch = new Switch(this);
-        watch.setText("Vigilar cambios en segundo plano");
-        watch.setTextColor(WHITE);
-        watch.setTextSize(16);
-        watch.setTypeface(fSB);
-        watch.setChecked(p.getBoolean(Prefs.WATCH, false));
-        watch.setOnCheckedChangeListener((v, on) -> {
-            p.edit().putBoolean(Prefs.WATCH, on).apply();
-            if (on) KeeperService.start(this);
-            else stopService(new android.content.Intent(this, KeeperService.class));
-        });
-        styleSwitch(watch);
-        bar.setOrientation(LinearLayout.VERTICAL);
-        bar.addView(watch, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)));
-        LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        blp.topMargin = dp(16);
-        c.addView(bar, blp);
-
-        c.addView(hint("Con la app cerrada no queda nada corriendo: al encender el carro se pone tu modo y tu sonido y se apaga sola. "
-                + "El modo se guarda al elegirlo aquí. Si además quieres que guarde los cambios hechos desde el volante o la pantalla del carro, activa "
-                + "\"Vigilar\" (deja un servicio ligero encendido)."));
-        return c;
-    }
-
-    private FrameLayout modeCard(String title, String sub, int art, Runnable onPick) {
-        FrameLayout f = new FrameLayout(this);
-        f.setBackground(ripple(rounded(0xFF111318, GLASS_LINE, 1, 26)));
-        f.setOutlineProvider(new RoundedOutline(dp(26)));
-        f.setClipToOutline(true);
-        f.setOnClickListener(v -> onPick.run());
-
-        ImageView img = new ImageView(this);
-        img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        img.setImageResource(art);
-        img.setTag("art");
-        f.addView(img, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        f.addView(shade(), new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-
-        LinearLayout txt = new LinearLayout(this);
-        txt.setOrientation(LinearLayout.VERTICAL);
-        txt.setPadding(dp(26), dp(20), dp(26), dp(24));
-        TextView t = tv(title, 32, WHITE, fXB);
-        t.setLetterSpacing(0.04f);
-        txt.addView(t);
-        txt.addView(tv(sub, 15, SOFT, null));
-        f.addView(txt, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
-
-        TextView tag = tv("ACTIVO", 12, 0xFF1A0F05, fSB);
-        tag.setLetterSpacing(0.2f);
-        tag.setPadding(dp(14), dp(6), dp(14), dp(6));
-        tag.setBackground(papayaPill());
-        tag.setTag("tag");
-        tag.setVisibility(View.INVISIBLE);
-        FrameLayout.LayoutParams tl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.START);
-        tl.setMargins(dp(20), dp(20), 0, 0);
-        f.addView(tag, tl);
-
-        View border = new View(this);
-        border.setBackground(rounded(0, PAPAYA, 3, 26));
-        border.setTag("border");
-        border.setVisibility(View.INVISIBLE);
-        f.addView(border, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        return f;
-    }
-
-    private void applyMode(int drive, int regen) {
-        p.edit().putInt(Prefs.DRIVE, drive).putInt(Prefs.REGEN, regen).apply();
-        refreshMode();
-        new Thread(() -> {
-            boolean ok1 = car.setDrive(drive);
-            boolean ok2 = car.setRegen(regen);
-            if (!ok1 || !ok2) ui.post(() -> toast("El carro no aceptó el cambio"));
-        }).start();
-    }
-
-    private void refreshMode() {
-        int d = p.getInt(Prefs.DRIVE, 0), r = p.getInt(Prefs.REGEN, 0);
-        boolean city = d == CITY_DRIVE && r == CITY_REGEN;
-        boolean hwy = d == HWY_DRIVE && r == HWY_REGEN;
-        if (cityCard != null) {
-            markCard(cityCard, city);
-            markCard(hwyCard, hwy);
-        }
-        if (modeName != null) {
-            modeName.setText(city ? "CIUDAD" : hwy ? "AUTOPISTA" : "PERSONALIZADO");
-            modeSub.setText(city ? "Eco · Regeneración media" : hwy ? "Sport · Regeneración media" : "Configuración propia");
-            modeArt.setImageResource(city ? R.drawable.card_city : R.drawable.card_highway);
-        }
-    }
-
-    private void markCard(FrameLayout card, boolean on) {
-        View tag = card.findViewWithTag("tag");
-        View border = card.findViewWithTag("border");
-        View art = card.findViewWithTag("art");
-        if (tag != null) tag.setVisibility(on ? View.VISIBLE : View.INVISIBLE);
-        if (border != null) border.setVisibility(on ? View.VISIBLE : View.INVISIBLE);
-        if (art != null) art.setAlpha(on ? 1f : 0.62f);
-    }
-
     // ------------------------------------------------------------ sonido
 
     private View soundContent() {
@@ -816,7 +668,7 @@ public class MainActivity extends Activity {
     private void refreshLock() {
         String name = p.getString(Prefs.LOCK_NAME, null);
         if (lockNow != null) lockNow.setText(name == null ? "El del carro" : name.replaceAll("(?i)\\.wav$", ""));
-        setSub(tileSound, name == null ? "Sonido del carro" : name.replaceAll("(?i)\\.wav$", ""));
+        if (homeSound != null) homeSound.setText(name == null ? "El del carro" : name.replaceAll("(?i)\\.wav$", ""));
         if (lockList == null) return;
 
         lockList.removeAllViews();
