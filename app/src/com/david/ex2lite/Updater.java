@@ -88,25 +88,13 @@ public final class Updater {
             }
             // Legible por el instalador y pm install como root.
             apk.setReadable(true, false);
-            // El script corre en el adbd (no muere cuando el sistema reemplaza esta app):
-            // instala, borra el APK y vuelve a abrir la app ya actualizada.
-            String log = "/data/local/tmp/ex2up.txt";
-            RootShell.run(10000, "rm -f " + log);
-            RootShell.run(10000, "nohup sh -c 'pm install -r -d " + apk.getAbsolutePath() + " > " + log
-                    + " 2>&1; rm -f " + apk.getAbsolutePath()
-                    + "; sleep 1; am start -n com.david.ex2lite/.MainActivity' >/dev/null 2>&1 &");
-            // Si la instalación sale bien, el sistema cierra esta app y se reabre sola.
-            // Solo seguimos aquí si algo falló.
-            String out = "";
-            for (int i = 0; i < 60; i++) {
-                Thread.sleep(1500);
-                String r = RootShell.run(10000, "cat " + log);
-                if (r != null && !r.trim().isEmpty()) { out = r; break; }
-            }
-            if (out.toLowerCase(Locale.ROOT).contains("success")) {
+            // Instalación directa. Si sale bien, el sistema cierra esta app y el
+            // BootReceiver la vuelve a abrir al detectar que fue reemplazada.
+            String out = RootShell.run(90000, "pm install -r -d " + apk.getAbsolutePath());
+            apk.delete();
+            if (out != null && out.toLowerCase(Locale.ROOT).contains("success")) {
                 return new Result(true, true, "Actualizado a " + name + ". Reiniciando...");
             }
-            apk.delete();
             return new Result(false, false, "La instalación falló: " + out);
         } catch (Throwable t) {
             Log.w(T, "update", t);

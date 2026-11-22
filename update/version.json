@@ -1,7 +1,7 @@
 {
-  "versionCode": 9,
-  "versionName": "4.4",
+  "versionCode": 10,
+  "versionName": "4.5",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "c40eef37e06d25accc3e98edc38865b1593c44f2fb1a384b7341f47ae7453e1a",
-  "notes": "Probar el sonido de bloqueo: usa el canal de medios, pide foco de audio y explica por qué falla."
+  "sha256": "3a77a1927d4c279a89cd71ceecdf28ca57d93660454ec97f934e6abebec6f93e",
+  "notes": "Arreglada la instalación de actualizaciones; la app se reabre sola al terminar."
 }
