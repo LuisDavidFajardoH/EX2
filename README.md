@@ -94,7 +94,7 @@ Licencia MIT (ver `LICENSE`).
 Después del primer install, la app se actualiza sola por internet. No se necesita USB ni computador para las siguientes versiones.
 
 ### Cómo funciona
-- Subes a un repo de GitHub el `ex2lite.apk` (como *release* `latest`) y el `update/version.json`.
+- El repo guarda `update/version.json` y el `update/ex2lite.apk`. Ambos se leen desde la rama `main`.
 - La app, con internet en la pantalla, lee `version.json`. Si el `versionCode` es mayor que el instalado, descarga el APK, **verifica el SHA-256** y lo instala vía `pm install` por el adbd local (root). Si el hash no coincide, no instala nada.
 - Botón **Buscar actualizaciones** en la pantalla de modo de manejo.
 
@@ -109,8 +109,7 @@ Después del primer install, la app se actualiza sola por internet. No se necesi
 export REPO=LuisDavidFajardoH/ex2
 ./release.sh 2 1.1 "Qué cambió"
 git add -A && git commit -m "v1.1" && git push
-gh release create v1.1 app/ex2lite.apk -t v1.1 -n "Qué cambió"
 ```
-El `release.sh` sube el `versionCode`/`versionName`, recompila y recalcula el hash en `version.json` solo.
+El `release.sh` sube el `versionCode`/`versionName`, recompila, copia el APK a `update/` y recalcula el hash en `version.json` solo.
 
 > El instalador vía adbd local necesita que el ADB de la pantalla esté abierto (ya lo está desde que pusiste Sapo). Un reset de fábrica lo cierra; ahí tocaría reabrirlo una vez.
