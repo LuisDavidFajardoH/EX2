@@ -6,3 +6,4 @@ app/unsigned.apk
 app/aligned.apk
 app/compiled_res.zip
 app/ex2lite.apk
+*.idsig
