@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -44,9 +45,32 @@ import java.util.Locale;
  * Inicio → Manejo / Sonido / Red / Actualizar.
  */
 public class MainActivity extends Activity {
-    static final int BLACK = 0xFF07080A, PAPAYA = 0xFFFF8000, PAPAYA_HI = 0xFFFFA03A, PAPAYA_LO = 0xFFE86A00,
-            WHITE = 0xFFF5F5F5, DIM = 0xFF9AA1AB, SOFT = 0xFFD7DBE0, DANGER = 0xFFFF5A4E,
-            GLASS_TOP = 0xE6222833, GLASS_BOT = 0xE60E1116, GLASS_LINE = 0x33FFFFFF, FIELD = 0x40FFFFFF;
+    // Colores del tema activo (se rellenan en applyTheme)
+    private int BLACK, ACCENT, ACCENT_HI, ACCENT_LO, WHITE, DIM, SOFT, DANGER,
+            GLASS_TOP, GLASS_BOT, GLASS_LINE, FIELD, ON_ACCENT, A10, A22, A33, A44, AAA, HERO_TOP, HERO_BOT;
+    private boolean tron;
+    private float textScale = 1f;
+
+    private void applyTheme() {
+        tron = p.getInt(Prefs.THEME, 1) == 1;
+        if (tron) {
+            BLACK = 0xFF01040A; ACCENT = 0xFF19E6FF; ACCENT_HI = 0xFF7DF3FF; ACCENT_LO = 0xFF0AA6C2;
+            WHITE = 0xFFEAFBFF; DIM = 0xFF7FA6B5; SOFT = 0xFFBFE9F2; DANGER = 0xFFFF7A18;
+            GLASS_TOP = 0xE6061C2A; GLASS_BOT = 0xE602090F; GLASS_LINE = 0x8019E6FF; FIELD = 0x2619E6FF;
+            ON_ACCENT = 0xFF001018; A10 = 0x1019E6FF; A22 = 0x2219E6FF; A33 = 0x3319E6FF; A44 = 0x4419E6FF; AAA = 0xAA19E6FF;
+            HERO_TOP = 0xFF04303F; HERO_BOT = 0xFF020A12;
+            textScale = 0.82f;
+        } else {
+            BLACK = 0xFF07080A; ACCENT = 0xFFFF8000; ACCENT_HI = 0xFFFFA03A; ACCENT_LO = 0xFFE86A00;
+            WHITE = 0xFFF5F5F5; DIM = 0xFF9AA1AB; SOFT = 0xFFD7DBE0; DANGER = 0xFFFF5A4E;
+            GLASS_TOP = 0xE6222833; GLASS_BOT = 0xE60E1116; GLASS_LINE = 0x33FFFFFF; FIELD = 0x40FFFFFF;
+            ON_ACCENT = ON_ACCENT; A10 = 0x10FF8000; A22 = 0x22FF8000; A33 = 0x33FF8000; A44 = 0x44FF8000; AAA = 0xAAFF8000;
+            HERO_TOP = 0xFF4A2400; HERO_BOT = 0xFF14161B;
+            textScale = 1f;
+        }
+    }
+
+    private int cardR() { return tron ? 6 : 26; }
 
     static final int REQ_LOCATION = 7;
 
@@ -93,16 +117,28 @@ public class MainActivity extends Activity {
     @Override protected void onCreate(Bundle b) {
         super.onCreate(b);
         p = Prefs.get(this);
-        fXB = font(R.font.mont_xbold_italic, Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
-        fSB = font(R.font.mont_semibold, Typeface.create("sans-serif-medium", Typeface.BOLD));
-        fLT = font(R.font.mont_light, Typeface.create("sans-serif-light", Typeface.NORMAL));
+        applyTheme();
+        if (tron) {
+            fXB = font(R.font.orb_xbold, Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            fSB = font(R.font.orb_medium, Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            fLT = font(R.font.orb_regular, Typeface.create("sans-serif-light", Typeface.NORMAL));
+        } else {
+            fXB = font(R.font.mont_xbold_italic, Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
+            fSB = font(R.font.mont_semibold, Typeface.create("sans-serif-medium", Typeface.BOLD));
+            fLT = font(R.font.mont_light, Typeface.create("sans-serif-light", Typeface.NORMAL));
+        }
 
         root = new FrameLayout(this);
         root.setBackgroundColor(BLACK);
         ImageView bg = new ImageView(this);
         bg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        bg.setImageResource(R.drawable.bg_home);
+        bg.setImageResource(tron ? R.drawable.bg_tron : R.drawable.bg_home);
         root.addView(bg, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        if (tron) {   // oscurece un poco la rejilla para que se lea el contenido
+            View dim = new View(this);
+            dim.setBackgroundColor(0x55000000);
+            root.addView(dim, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
 
         home = homePage();
         soundPage = page("SONIDO DE BLOQUEO", soundContent());
@@ -209,14 +245,14 @@ public class MainActivity extends Activity {
         LinearLayout brand = new LinearLayout(this);
         brand.setGravity(Gravity.CENTER_VERTICAL);
         ImageView fox = new ImageView(this);
-        fox.setImageResource(R.drawable.fox_hero);
+        fox.setImageResource(tron ? R.drawable.fox_tron : R.drawable.fox_hero);
         brand.addView(fox, new LinearLayout.LayoutParams(dp(92), dp(92)));
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.VERTICAL);
         names.setPadding(dp(6), 0, 0, 0);
         TextView t1 = tv("EX2 LITE", 26, WHITE, fXB);
         t1.setLetterSpacing(0.08f);
-        TextView t2 = tv("GEELY EX2", 11, PAPAYA, fSB);
+        TextView t2 = tv("GEELY EX2", 11, ACCENT, fSB);
         t2.setLetterSpacing(0.32f);
         names.addView(t1);
         names.addView(t2);
@@ -228,14 +264,14 @@ public class MainActivity extends Activity {
         clock = tv("--:--", 66, WHITE, fLT);
         clock.setIncludeFontPadding(false);
         left.addView(clock);
-        dateTxt = tv("", 13, PAPAYA, fSB);
+        dateTxt = tv("", 13, ACCENT, fSB);
         dateTxt.setLetterSpacing(0.18f);
         dateTxt.setPadding(dp(4), dp(4), 0, 0);
         left.addView(dateTxt);
 
         left.addView(new View(this), new LinearLayout.LayoutParams(1, 0, 0.6f));
 
-        updBanner = tv("", 13, 0xFF1A0F05, fSB);
+        updBanner = tv("", 13, ON_ACCENT, fSB);
         updBanner.setPadding(dp(16), dp(9), dp(16), dp(9));
         updBanner.setBackground(papayaPill());
         updBanner.setVisibility(View.GONE);
@@ -243,6 +279,18 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams ubl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         ubl.bottomMargin = dp(12);
         left.addView(updBanner, ubl);
+
+        TextView themeBtn = tv(tron ? "TEMA: TRON  \u21C4" : "TEMA: PAPAYA  \u21C4", 12, ACCENT, fSB);
+        themeBtn.setLetterSpacing(0.14f);
+        themeBtn.setPadding(dp(16), dp(9), dp(16), dp(9));
+        themeBtn.setBackground(ripple(shape(FIELD, FIELD, GLASS_LINE, 1, 24)));
+        themeBtn.setOnClickListener(v -> {
+            p.edit().putInt(Prefs.THEME, tron ? 0 : 1).apply();
+            recreate();
+        });
+        LinearLayout.LayoutParams tbl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        tbl.bottomMargin = dp(12);
+        left.addView(themeBtn, tbl);
 
         wifiChip = new TextView(this);
         ipChip = new TextView(this);
@@ -277,16 +325,13 @@ public class MainActivity extends Activity {
     /** Tarjeta grande del inicio: el sonido de bloqueo actual. */
     private View soundHero() {
         FrameLayout f = new FrameLayout(this);
-        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{0xFF4A2400, 0xFF14161B});
-        g.setCornerRadius(dp(26));
-        g.setStroke(dp(1), GLASS_LINE);
-        f.setBackground(ripple(g));
-        f.setOutlineProvider(new RoundedOutline(dp(26)));
+        f.setBackground(ripple(shape(HERO_TOP, HERO_BOT, GLASS_LINE, 1, 26)));
+        f.setOutlineProvider(new RoundedOutline(dp(cardR())));
         f.setClipToOutline(true);
         f.setOnClickListener(v -> show(soundPage));
 
         ImageView wave = new ImageView(this);
-        wave.setImageResource(R.drawable.wave);
+        wave.setImageResource(tron ? R.drawable.wave_tron : R.drawable.wave);
         wave.setScaleType(ImageView.ScaleType.FIT_XY);
         wave.setAlpha(0.75f);
         FrameLayout.LayoutParams wl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(110), Gravity.CENTER_VERTICAL);
@@ -301,14 +346,14 @@ public class MainActivity extends Activity {
         LinearLayout txt = new LinearLayout(this);
         txt.setOrientation(LinearLayout.VERTICAL);
         txt.setPadding(dp(24), dp(20), dp(24), dp(22));
-        TextView lbl = tv("SONIDO DE BLOQUEO", 11, PAPAYA, fSB);
+        TextView lbl = tv("SONIDO DE BLOQUEO", 11, ACCENT, fSB);
         lbl.setLetterSpacing(0.3f);
         txt.addView(lbl);
         homeSound = tv("", 26, WHITE, fXB);
         homeSound.setSingleLine(true);
         homeSound.setEllipsize(TextUtils.TruncateAt.END);
         txt.addView(homeSound);
-        TextView pill = tv("TOCA PARA ELEGIR  \u203A", 12, 0xFF1A0F05, fSB);
+        TextView pill = tv("TOCA PARA ELEGIR  \u203A", 12, ON_ACCENT, fSB);
         pill.setLetterSpacing(0.12f);
         pill.setPadding(dp(16), dp(8), dp(16), dp(8));
         pill.setBackground(papayaPill());
@@ -461,11 +506,11 @@ public class MainActivity extends Activity {
         LinearLayout ipRow = new LinearLayout(this);
         ipRow.setGravity(Gravity.CENTER_VERTICAL);
         ipRow.setPadding(0, dp(10), 0, 0);
-        TextView ipl = tv("IP", 12, 0xFF1A0F05, fSB);
+        TextView ipl = tv("IP", 12, ON_ACCENT, fSB);
         ipl.setPadding(dp(8), dp(2), dp(8), dp(2));
         ipl.setBackground(papayaPill());
         ipRow.addView(ipl);
-        netIp = tv("", 22, PAPAYA, fSB);
+        netIp = tv("", 22, ACCENT, fSB);
         netIp.setPadding(dp(10), 0, 0, 0);
         ipRow.addView(netIp);
         info.addView(ipRow);
@@ -477,7 +522,7 @@ public class MainActivity extends Activity {
         wifiSwitch = new Switch(this);
         wifiSwitch.setText("Wi-Fi");
         wifiSwitch.setTextColor(WHITE);
-        wifiSwitch.setTextSize(17);
+        wifiSwitch.setTextSize(17 * textScale);
         wifiSwitch.setTypeface(fSB);
         wifiSwitch.setPadding(0, dp(14), 0, 0);
         wifiSwitch.setOnCheckedChangeListener((v, on) -> {
@@ -541,7 +586,7 @@ public class MainActivity extends Activity {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(16), dp(12), dp(16), dp(12));
-        row.setBackground(ripple(rounded(connected ? 0x33FF8000 : FIELD, connected ? PAPAYA : 0, connected ? 2 : 0, 16)));
+        row.setBackground(ripple(rounded(connected ? A33 : FIELD, connected ? ACCENT : 0, connected ? 2 : 0, 16)));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.bottomMargin = dp(8);
         row.setLayoutParams(lp);
@@ -552,7 +597,7 @@ public class MainActivity extends Activity {
         n.setSingleLine(true);
         n.setEllipsize(TextUtils.TruncateAt.END);
         String sub = (connected ? "Conectada  ·  " : "") + (secured ? "Con clave" : "Abierta") + "  ·  " + r.level + " dBm";
-        TextView s = tv(sub, 12, connected ? PAPAYA : DIM, null);
+        TextView s = tv(sub, 12, connected ? ACCENT : DIM, null);
         info.addView(n);
         info.addView(s);
         row.addView(info, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -604,13 +649,13 @@ public class MainActivity extends Activity {
         TextView l1 = tv("AHORA SUENA", 11, DIM, fSB);
         l1.setLetterSpacing(0.3f);
         lblCol.addView(l1);
-        lockNow = tv("", 20, PAPAYA, fXB);
+        lockNow = tv("", 20, ACCENT, fXB);
         lockNow.setSingleLine(true);
         lockNow.setEllipsize(TextUtils.TruncateAt.END);
         lblCol.addView(lockNow);
         top.addView(lblCol, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         ImageView wave = new ImageView(this);
-        wave.setImageResource(R.drawable.wave);
+        wave.setImageResource(tron ? R.drawable.wave_tron : R.drawable.wave);
         wave.setScaleType(ImageView.ScaleType.FIT_XY);
         top.addView(wave, new LinearLayout.LayoutParams(0, dp(46), 1.3f));
         c.addView(top);
@@ -690,7 +735,7 @@ public class MainActivity extends Activity {
             if (b == null) continue;
             boolean on = i == sel;
             b.setBackground(on ? ripple(papayaPill()) : ripple(rounded(FIELD, GLASS_LINE, 1, 40)));
-            b.setTextColor(on ? 0xFF1A0F05 : WHITE);
+            b.setTextColor(on ? ON_ACCENT : WHITE);
         }
     }
 
@@ -781,7 +826,7 @@ public class MainActivity extends Activity {
         c.addView(updStatus);
 
         Button upd = primary("BUSCAR ACTUALIZACIONES");
-        upd.setTextSize(15);
+        upd.setTextSize(15 * textScale);
         upd.setOnClickListener(x -> runUpdate());
         c.addView(upd, new LinearLayout.LayoutParams(dp(380), dp(56)));
 
@@ -853,7 +898,7 @@ public class MainActivity extends Activity {
         TextView t = new TextView(this);
         t.setText(s);
         t.setTextColor(color);
-        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp * textScale);
         if (f != null) t.setTypeface(f);
         return t;
     }
@@ -862,10 +907,10 @@ public class MainActivity extends Activity {
     private ImageView badge(int icon, int sizeDp) {
         ImageView b = new ImageView(this);
         b.setImageResource(icon);
-        b.setColorFilter(0xFFFFFFFF);
+        b.setColorFilter(tron ? ON_ACCENT : 0xFFFFFFFF);
         int pad = dp(sizeDp) / 4;
         b.setPadding(pad, pad, pad, pad);
-        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{PAPAYA_HI, PAPAYA_LO});
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{ACCENT_HI, ACCENT_LO});
         g.setShape(GradientDrawable.OVAL);
         b.setBackground(g);
         return b;
@@ -874,8 +919,8 @@ public class MainActivity extends Activity {
     /** Insignia grande con anillos de resplandor alrededor. */
     private View ringBadge(int icon) {
         FrameLayout f = new FrameLayout(this);
-        f.addView(ringView(0x22FF8000), centered(150));
-        f.addView(ringView(0x44FF8000), centered(122));
+        f.addView(ringView(A22), centered(150));
+        f.addView(ringView(A44), centered(122));
         f.addView(badge(icon, 92), centered(92));
         return f;
     }
@@ -910,9 +955,10 @@ public class MainActivity extends Activity {
         c.setBackground(glass(24));
         ImageView i = new ImageView(this);
         i.setImageResource(icon);
+        i.setColorFilter(ACCENT);
         c.addView(i, new LinearLayout.LayoutParams(dp(20), dp(20)));
         text.setTextColor(WHITE);
-        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14 * textScale);
         text.setTypeface(fSB);
         text.setSingleLine(true);
         text.setPadding(dp(10), 0, 0, 0);
@@ -934,7 +980,7 @@ public class MainActivity extends Activity {
     }
 
     private Button primary(String s) {
-        Button b = baseButton(s, 12, 0xFF1A0F05);
+        Button b = baseButton(s, 12, ON_ACCENT);
         b.setBackground(ripple(papayaPill()));
         return b;
     }
@@ -949,7 +995,7 @@ public class MainActivity extends Activity {
         Button b = new Button(this);
         b.setText(s);
         b.setAllCaps(false);
-        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
+        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, size * textScale);
         b.setTextColor(color);
         b.setTypeface(fSB);
         b.setLetterSpacing(0.1f);
@@ -977,11 +1023,11 @@ public class MainActivity extends Activity {
     /** Interruptor visible sobre fondo oscuro: pista clara y pulgar naranja al encender. */
     private void styleSwitch(Switch s) {
         int[] on = {android.R.attr.state_checked};
-        GradientDrawable thumbOn = oval(PAPAYA_HI, 28), thumbOff = oval(0xFFE6E8EB, 28);
+        GradientDrawable thumbOn = oval(ACCENT_HI, 28), thumbOff = oval(0xFFE6E8EB, 28);
         StateListDrawable thumb = new StateListDrawable();
         thumb.addState(on, thumbOn);
         thumb.addState(new int[]{}, thumbOff);
-        GradientDrawable trackOn = pill(0xAAFF8000, 54, 30), trackOff = pill(0x66FFFFFF, 54, 30);
+        GradientDrawable trackOn = pill(AAA, 54, 30), trackOff = pill(0x66FFFFFF, 54, 30);
         trackOff.setStroke(dp(1), 0x66FFFFFF);
         StateListDrawable track = new StateListDrawable();
         track.addState(on, trackOn);
@@ -1007,36 +1053,42 @@ public class MainActivity extends Activity {
         return g;
     }
 
-    private GradientDrawable papayaPill() {
-        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{PAPAYA_HI, PAPAYA_LO});
-        g.setCornerRadius(dp(60));
-        return g;
-    }
-
-    private GradientDrawable glass(int radiusDp) {
-        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{GLASS_TOP, GLASS_BOT});
-        g.setCornerRadius(dp(radiusDp));
-        g.setStroke(dp(1), GLASS_LINE);
-        return g;
-    }
-
-    private GradientDrawable glassOval() {
-        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{GLASS_TOP, GLASS_BOT});
-        g.setShape(GradientDrawable.OVAL);
-        g.setStroke(dp(1), GLASS_LINE);
-        return g;
-    }
-
-    private GradientDrawable rounded(int fill, int stroke, int strokeDp, int radiusDp) {
-        GradientDrawable g = new GradientDrawable();
-        g.setColor(fill);
+    /** Forma con relleno degradado y borde: redondeada en papaya, de esquinas cortadas con neón en Tron. */
+    private Drawable shape(int top, int bottom, int stroke, int strokeDp, int radiusDp) {
+        if (tron) {
+            float cut = dp(Math.max(5, Math.min(14, radiusDp / 2)));
+            return new NeonDrawable(top, bottom, stroke, strokeDp > 0 ? dp(strokeDp) * 1.4f : 0, cut, strokeDp > 0);
+        }
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{top, bottom});
         g.setCornerRadius(dp(radiusDp));
         if (strokeDp > 0) g.setStroke(dp(strokeDp), stroke);
         return g;
     }
 
-    private RippleDrawable ripple(GradientDrawable content) {
-        return new RippleDrawable(ColorStateList.valueOf(0x44FF8000), content, null);
+    private Drawable papayaPill() {
+        if (tron) return new NeonDrawable(ACCENT_HI, ACCENT_LO, 0, 0, dp(5), false);
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{ACCENT_HI, ACCENT_LO});
+        g.setCornerRadius(dp(60));
+        return g;
+    }
+
+    private Drawable glass(int radiusDp) {
+        return shape(GLASS_TOP, GLASS_BOT, GLASS_LINE, 1, radiusDp);
+    }
+
+    private GradientDrawable glassOval() {
+        GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{GLASS_TOP, GLASS_BOT});
+        g.setShape(GradientDrawable.OVAL);
+        g.setStroke(dp(tron ? 2 : 1), tron ? ACCENT : GLASS_LINE);
+        return g;
+    }
+
+    private Drawable rounded(int fill, int stroke, int strokeDp, int radiusDp) {
+        return shape(fill, fill, stroke, strokeDp, radiusDp);
+    }
+
+    private RippleDrawable ripple(Drawable content) {
+        return new RippleDrawable(ColorStateList.valueOf(A44), content, null);
     }
 
     private int dp(int v) { return Math.round(v * getResources().getDisplayMetrics().density); }

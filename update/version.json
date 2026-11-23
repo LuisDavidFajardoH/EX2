@@ -1,7 +1,7 @@
 {
-  "versionCode": 14,
-  "versionName": "6.0",
+  "versionCode": 15,
+  "versionName": "6.1",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "7bda45d612f5c00039041026288d52cb32292cf0fc5e7971cb2df3b40a545139",
-  "notes": "Se quitan los modos de manejo. La app queda para sonido de bloqueo, red y actualizaciones."
+  "sha256": "77de7637a9f342f288041b39c77f42e307986f2814828a065e34a39a9c4e05c3",
+  "notes": "Nuevo tema Tron (neón cian) con botón para volver al tema papaya"
 }

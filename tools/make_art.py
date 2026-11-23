@@ -199,6 +199,84 @@ def wave():
     s.append('</svg>')
     return "\n".join(s)
 
+# ------------------------------------------------------------------ TEMA TRON
+CY = "#19E6FF"
+
+def tron_bg():
+    W, H, HZ = 1600, 720, 330
+    vx = W / 2
+    s = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">']
+    s.append(f'''<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#01040A"/><stop offset=".6" stop-color="#03111E"/><stop offset="1" stop-color="#062A3E"/></linearGradient>
+<linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#062A3E"/><stop offset=".25" stop-color="#031420"/><stop offset="1" stop-color="#010409"/></linearGradient>
+<radialGradient id="hz" cx="50%" cy="46%" r="55%"><stop offset="0" stop-color="{CY}" stop-opacity=".55"/><stop offset=".5" stop-color="{CY}" stop-opacity=".10"/><stop offset="1" stop-color="{CY}" stop-opacity="0"/></radialGradient>
+<filter id="g1" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.2"/></filter>
+<filter id="g2" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>''')
+    s.append(f'<rect width="{W}" height="{HZ}" fill="url(#sky)"/>')
+    s.append(f'<rect y="{HZ}" width="{W}" height="{H-HZ}" fill="url(#floor)"/>')
+    # estrellas
+    r = random.Random(12)
+    for _ in range(90):
+        s.append(f'<circle cx="{r.uniform(0,W):.0f}" cy="{r.uniform(0,HZ-30):.0f}" r="{r.uniform(.5,1.4):.1f}" fill="#BFF6FF" opacity="{r.uniform(.15,.7):.2f}"/>')
+    # ciudad de luz en el horizonte
+    r = random.Random(5); x = 0
+    while x < W:
+        bw = r.uniform(14, 46); bh = r.uniform(8, 70) * (1.0 - abs(x - vx) / (W * 0.62) * 0.55)
+        s.append(f'<rect x="{x:.0f}" y="{HZ-bh:.0f}" width="{bw:.0f}" height="{bh:.0f}" fill="#04202F" stroke="{CY}" stroke-opacity=".45" stroke-width="1"/>')
+        x += bw + r.uniform(2, 10)
+    s.append(f'<rect width="{W}" height="{H}" fill="url(#hz)"/>')
+    # rejilla del suelo en perspectiva
+    grid = []
+    for i in range(-22, 23):
+        x2 = vx + i * 150
+        grid.append(f'<line x1="{vx}" y1="{HZ}" x2="{x2:.0f}" y2="{H+40}"/>')
+    k = 0.0; step = 0.045
+    for n in range(1, 18):
+        t = (n / 17) ** 2.2
+        y = HZ + (H - HZ + 40) * t
+        grid.append(f'<line x1="0" y1="{y:.1f}" x2="{W}" y2="{y:.1f}"/>')
+    g = "\n".join(grid)
+    s.append(f'<g stroke="{CY}" stroke-width="5" opacity=".30" filter="url(#g2)">{g}</g>')
+    s.append(f'<g stroke="{CY}" stroke-width="1.6" opacity=".65">{g}</g>')
+    # línea del horizonte
+    s.append(f'<rect x="0" y="{HZ-2}" width="{W}" height="4" fill="{CY}" opacity=".55" filter="url(#g2)"/>')
+    s.append(f'<rect x="0" y="{HZ-1}" width="{W}" height="2" fill="#E6FDFF"/>')
+    # estelas de moto de luz (naranja y cian)
+    for (x1, y1, x2, y2, col, w) in [(60, 560, 760, 372, "#FF7A18", 5), (1540, 600, 880, 380, CY, 5), (300, 690, 700, 400, CY, 3)]:
+        s.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{col}" stroke-width="{w*3}" opacity=".25" filter="url(#g2)"/>')
+        s.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{col}" stroke-width="{w}" opacity=".9"/>')
+    s.append('</svg>')
+    return "\n".join(s)
+
+def tron_wave():
+    W, H = 1000, 120
+    s = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">']
+    s.append(f'''<defs><linearGradient id="w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{CY}" stop-opacity="0"/><stop offset=".25" stop-color="{CY}"/><stop offset=".7" stop-color="#7DF3FF"/><stop offset="1" stop-color="{CY}" stop-opacity="0"/></linearGradient></defs>''')
+    n = 70; bw = 5; gap = (W - n * bw) / (n - 1)
+    for i in range(n):
+        x = i * (bw + gap)
+        v = 0.5 + 0.28 * math.sin(i * 0.31) + 0.18 * math.sin(i * 0.83 + 1.2) + 0.1 * math.sin(i * 1.9)
+        v *= (0.55 + 0.45 * math.sin(math.pi * i / (n - 1)))
+        h = max(6, v * 104)
+        s.append(f'<rect x="{x:.1f}" y="{(H-h)/2:.1f}" width="{bw}" height="{h:.1f}" fill="url(#w)"/>')
+    s.append('</svg>')
+    return "\n".join(s)
+
+def tron_fox():
+    polys = re.findall(r'<polygon points="([^"]+)"', (ICON / "fox_icon.svgfrag").read_text())
+    body = "\n".join(f'<polygon points="{p}"/>' for p in polys)
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs><filter id="gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="7"/></filter></defs>
+<g transform="translate(256 262) scale(.86) translate(-256 -262)" fill="#19E6FF" fill-opacity=".07" stroke="{CY}" stroke-width="12" stroke-linejoin="round" opacity=".55" filter="url(#gl)">{body}</g>
+<g transform="translate(256 262) scale(.86) translate(-256 -262)" fill="#19E6FF" fill-opacity=".06" stroke="{CY}" stroke-width="3.5" stroke-linejoin="round">{body}</g>
+</svg>'''
+
+for name, fn, w, h in [("bg_tron", tron_bg, 1600, 720), ("wave_tron", tron_wave, 1000, 120), ("fox_tron", tron_fox, 512, 512)]:
+    pth = ICON / f"{name}.svg"
+    pth.write_text(fn())
+    png(pth, NODPI / f"{name}.png", w, h)
+
 for name, fn, w, h in [("card_highway", highway, 1000, 800), ("card_city", city, 1000, 800),
                        ("bg_home", home_bg, 1600, 720), ("wave", wave, 1000, 120)]:
     p = ICON / f"{name}.svg"
