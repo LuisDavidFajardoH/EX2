@@ -48,12 +48,23 @@ public class MainActivity extends Activity {
     // Colores del tema activo (se rellenan en applyTheme)
     private int BLACK, ACCENT, ACCENT_HI, ACCENT_LO, WHITE, DIM, SOFT, DANGER,
             GLASS_TOP, GLASS_BOT, GLASS_LINE, FIELD, ON_ACCENT, A10, A22, A33, A44, AAA, HERO_TOP, HERO_BOT;
-    private boolean tron;
+    private boolean tron;   // estilo angular con neón (Tron y Noche)
+    private boolean bat;    // tema Noche: negro y amarillo
+    private int theme;
     private float textScale = 1f;
 
     private void applyTheme() {
-        tron = p.getInt(Prefs.THEME, 1) == 1;
-        if (tron) {
+        theme = p.getInt(Prefs.THEME, 1);
+        bat = theme == 2;
+        tron = theme != 0;
+        if (bat) {
+            BLACK = 0xFF050506; ACCENT = 0xFFFFD400; ACCENT_HI = 0xFFFFE766; ACCENT_LO = 0xFFD9A800;
+            WHITE = 0xFFF2F2F0; DIM = 0xFF9A978A; SOFT = 0xFFD6D3C4; DANGER = 0xFFFF5A4E;
+            GLASS_TOP = 0xE61A1A1C; GLASS_BOT = 0xE6070708; GLASS_LINE = 0x80FFD400; FIELD = 0x26FFD400;
+            ON_ACCENT = 0xFF0A0A0A; A10 = 0x10FFD400; A22 = 0x22FFD400; A33 = 0x33FFD400; A44 = 0x44FFD400; AAA = 0xAAFFD400;
+            HERO_TOP = 0xFF2A2306; HERO_BOT = 0xFF060606;
+            textScale = 0.92f;
+        } else if (tron) {
             BLACK = 0xFF01040A; ACCENT = 0xFF19E6FF; ACCENT_HI = 0xFF7DF3FF; ACCENT_LO = 0xFF0AA6C2;
             WHITE = 0xFFEAFBFF; DIM = 0xFF7FA6B5; SOFT = 0xFFBFE9F2; DANGER = 0xFFFF7A18;
             GLASS_TOP = 0xE6061C2A; GLASS_BOT = 0xE602090F; GLASS_LINE = 0x8019E6FF; FIELD = 0x2619E6FF;
@@ -118,7 +129,7 @@ public class MainActivity extends Activity {
         super.onCreate(b);
         p = Prefs.get(this);
         applyTheme();
-        if (tron) {
+        if (tron && !bat) {
             fXB = font(R.font.orb_xbold, Typeface.create("sans-serif-condensed", Typeface.BOLD));
             fSB = font(R.font.orb_medium, Typeface.create("sans-serif-medium", Typeface.NORMAL));
             fLT = font(R.font.orb_regular, Typeface.create("sans-serif-light", Typeface.NORMAL));
@@ -132,7 +143,7 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(BLACK);
         ImageView bg = new ImageView(this);
         bg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        bg.setImageResource(tron ? R.drawable.bg_tron : R.drawable.bg_home);
+        bg.setImageResource(bat ? R.drawable.bg_bat : tron ? R.drawable.bg_tron : R.drawable.bg_home);
         root.addView(bg, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         if (tron) {   // oscurece un poco la rejilla para que se lea el contenido
             View dim = new View(this);
@@ -245,7 +256,7 @@ public class MainActivity extends Activity {
         LinearLayout brand = new LinearLayout(this);
         brand.setGravity(Gravity.CENTER_VERTICAL);
         ImageView fox = new ImageView(this);
-        fox.setImageResource(tron ? R.drawable.fox_tron : R.drawable.fox_hero);
+        fox.setImageResource(bat ? R.drawable.fox_bat : tron ? R.drawable.fox_tron : R.drawable.fox_hero);
         brand.addView(fox, new LinearLayout.LayoutParams(dp(92), dp(92)));
         LinearLayout names = new LinearLayout(this);
         names.setOrientation(LinearLayout.VERTICAL);
@@ -280,12 +291,12 @@ public class MainActivity extends Activity {
         ubl.bottomMargin = dp(12);
         left.addView(updBanner, ubl);
 
-        TextView themeBtn = tv(tron ? "TEMA: TRON  \u21C4" : "TEMA: PAPAYA  \u21C4", 12, ACCENT, fSB);
+        TextView themeBtn = tv((bat ? "TEMA: NOCHE" : tron ? "TEMA: TRON" : "TEMA: PAPAYA") + "  \u21C4", 12, ACCENT, fSB);
         themeBtn.setLetterSpacing(0.14f);
         themeBtn.setPadding(dp(16), dp(9), dp(16), dp(9));
         themeBtn.setBackground(ripple(shape(FIELD, FIELD, GLASS_LINE, 1, 24)));
         themeBtn.setOnClickListener(v -> {
-            p.edit().putInt(Prefs.THEME, tron ? 0 : 1).apply();
+            p.edit().putInt(Prefs.THEME, (theme + 1) % 3).apply();
             recreate();
         });
         LinearLayout.LayoutParams tbl = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -331,7 +342,7 @@ public class MainActivity extends Activity {
         f.setOnClickListener(v -> show(soundPage));
 
         ImageView wave = new ImageView(this);
-        wave.setImageResource(tron ? R.drawable.wave_tron : R.drawable.wave);
+        wave.setImageResource(bat ? R.drawable.wave_bat : tron ? R.drawable.wave_tron : R.drawable.wave);
         wave.setScaleType(ImageView.ScaleType.FIT_XY);
         wave.setAlpha(0.75f);
         FrameLayout.LayoutParams wl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(110), Gravity.CENTER_VERTICAL);
@@ -655,7 +666,7 @@ public class MainActivity extends Activity {
         lblCol.addView(lockNow);
         top.addView(lblCol, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         ImageView wave = new ImageView(this);
-        wave.setImageResource(tron ? R.drawable.wave_tron : R.drawable.wave);
+        wave.setImageResource(bat ? R.drawable.wave_bat : tron ? R.drawable.wave_tron : R.drawable.wave);
         wave.setScaleType(ImageView.ScaleType.FIT_XY);
         top.addView(wave, new LinearLayout.LayoutParams(0, dp(46), 1.3f));
         c.addView(top);

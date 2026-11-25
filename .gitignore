@@ -7,3 +7,5 @@ app/aligned.apk
 app/compiled_res.zip
 app/ex2lite.apk
 *.idsig
+config.bat
+node_modules

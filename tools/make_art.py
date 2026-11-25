@@ -277,6 +277,77 @@ for name, fn, w, h in [("bg_tron", tron_bg, 1600, 720), ("wave_tron", tron_wave,
     pth.write_text(fn())
     png(pth, NODPI / f"{name}.png", w, h)
 
+# ------------------------------------------------------------------ TEMA NOCHE (negro y amarillo)
+YL = "#FFD400"
+
+def bat_bg():
+    W, H = 1600, 720
+    r = random.Random(9)
+    s = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">']
+    s.append(f'''<defs>
+<linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050506"/><stop offset=".7" stop-color="#14120A"/><stop offset="1" stop-color="#2A2208"/></linearGradient>
+<linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="{YL}" stop-opacity=".55"/><stop offset="1" stop-color="{YL}" stop-opacity="0"/></linearGradient>
+<radialGradient id="moon" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#FFF3B0" stop-opacity=".9"/><stop offset=".35" stop-color="{YL}" stop-opacity=".35"/><stop offset="1" stop-color="{YL}" stop-opacity="0"/></radialGradient>
+<filter id="bl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="14"/></filter>
+</defs>''')
+    s.append(f'<rect width="{W}" height="{H}" fill="url(#sk)"/>')
+    s.append('<circle cx="1180" cy="150" r="190" fill="url(#moon)"/>')
+    s.append('<circle cx="1180" cy="150" r="58" fill="#FFF3B0" opacity=".92"/>')
+    # haz de reflector (sin emblema)
+    s.append(f'<polygon points="330,700 250,0 470,0 430,700" fill="url(#beam)" filter="url(#bl)" opacity=".8"/>')
+    s.append(f'<polygon points="350,700 290,0 430,0 410,700" fill="url(#beam)" opacity=".45"/>')
+    # dos capas de skyline
+    for layer, (col, base, hmax, edge) in enumerate([("#0B0B0D", 600, 300, .0), ("#030304", 720, 420, .0)]):
+        x = -20
+        while x < W:
+            bw = r.uniform(50, 130); bh = r.uniform(80, hmax)
+            top = base - bh
+            s.append(f'<rect x="{x:.0f}" y="{top:.0f}" width="{bw:.0f}" height="{bh+40:.0f}" fill="{col}"/>')
+            if r.random() < .45:   # torre con aguja
+                s.append(f'<polygon points="{x+bw*.4:.0f},{top:.0f} {x+bw*.5:.0f},{top-r.uniform(30,90):.0f} {x+bw*.6:.0f},{top:.0f}" fill="{col}"/>')
+            if layer == 0:         # ventanas encendidas
+                for _ in range(int(bw*bh/2600)):
+                    if r.random() < .5:
+                        s.append(f'<rect x="{x+r.uniform(6,bw-12):.0f}" y="{top+r.uniform(8,bh-10):.0f}" width="5" height="7" fill="{YL}" opacity="{r.uniform(.25,.8):.2f}"/>')
+            x += bw + r.uniform(-8, 6)
+    # niebla amarilla al fondo
+    s.append(f'<rect y="560" width="{W}" height="160" fill="{YL}" opacity=".06" filter="url(#bl)"/>')
+    s.append('</svg>')
+    return "\n".join(s)
+
+def bat_mark():
+    # murciélago genérico en vuelo (diseño propio, sin emblema de ningún personaje)
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs><filter id="gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+<path id="b" d="M256 210 L272 170 L284 206 C312 196 340 196 372 178 C410 158 450 170 478 214
+ C450 208 428 216 418 240 C406 224 386 224 372 244 C358 228 336 232 326 254
+ C312 244 296 256 288 282 L276 316 L256 354 L236 316 L224 282
+ C216 256 200 244 186 254 C176 232 154 228 140 244 C126 224 106 224 94 240
+ C84 216 62 208 34 214 C62 170 102 158 140 178 C172 196 200 196 228 206 L240 170 Z"/>
+<g fill="{YL}" opacity=".55" filter="url(#gl)"><use href="#b"/></g>
+<g fill="#0A0A0A" stroke="{YL}" stroke-width="6" stroke-linejoin="round"><use href="#b"/></g>
+<circle cx="244" cy="236" r="5" fill="{YL}"/><circle cx="268" cy="236" r="5" fill="{YL}"/>
+</svg>'''
+
+def bat_wave():
+    W, H = 1000, 120
+    s = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">']
+    s.append(f'<defs><linearGradient id="w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{YL}" stop-opacity="0"/><stop offset=".3" stop-color="{YL}"/><stop offset=".7" stop-color="#FFE766"/><stop offset="1" stop-color="{YL}" stop-opacity="0"/></linearGradient></defs>')
+    n = 70; bw = 5; gap = (W - n * bw) / (n - 1)
+    for i in range(n):
+        x = i * (bw + gap)
+        v = 0.5 + 0.28 * math.sin(i * 0.31) + 0.18 * math.sin(i * 0.83 + 1.2) + 0.1 * math.sin(i * 1.9)
+        v *= (0.55 + 0.45 * math.sin(math.pi * i / (n - 1)))
+        h = max(6, v * 104)
+        s.append(f'<rect x="{x:.1f}" y="{(H-h)/2:.1f}" width="{bw}" height="{h:.1f}" fill="url(#w)"/>')
+    s.append('</svg>')
+    return "\n".join(s)
+
+for name, fn, w, h in [("bg_bat", bat_bg, 1600, 720), ("wave_bat", bat_wave, 1000, 120), ("fox_bat", bat_mark, 512, 512)]:
+    pth = ICON / f"{name}.svg"
+    pth.write_text(fn())
+    png(pth, NODPI / f"{name}.png", w, h)
+
 for name, fn, w, h in [("card_highway", highway, 1000, 800), ("card_city", city, 1000, 800),
                        ("bg_home", home_bg, 1600, 720), ("wave", wave, 1000, 120)]:
     p = ICON / f"{name}.svg"

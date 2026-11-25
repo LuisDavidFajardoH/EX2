@@ -1,7 +1,7 @@
 {
-  "versionCode": 15,
-  "versionName": "6.1",
+  "versionCode": 16,
+  "versionName": "6.2",
   "apkUrl": "https://raw.githubusercontent.com/LuisDavidFajardoH/ex2/main/update/ex2lite.apk",
-  "sha256": "77de7637a9f342f288041b39c77f42e307986f2814828a065e34a39a9c4e05c3",
-  "notes": "Nuevo tema Tron (neón cian) con botón para volver al tema papaya"
+  "sha256": "824e91a651da8afb641a830448c4ab03707b153a1e6ac90158fefb55efd64ad1",
+  "notes": "Nuevo tema Noche (negro y amarillo, ciudad oscura); el botón TEMA rota entre Papaya, Tron y Noche"
 }
